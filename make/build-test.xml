@@ -134,13 +134,12 @@
 
         <!-- Javac of Annotation Processor dependencies - First -->
         <!-- This has a hard Java8 target spec test: source, target + bootclasspath -->
-        <javac destdir="${build_t.java}" 
+        <javac destdir="${build_t.java}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="junit.compile.classpath"/>
             <compilerarg value="-proc:none"/>
@@ -150,13 +149,12 @@
         <!-- Annotation Processor - Second -->
         <!-- This has a hard Java8 target spec test: source, target + bootclasspath -->
         <mkdir dir="${build_t.gen}/classes/com/jogamp/gluegen/test/junit/structgen"/>
-        <javac destdir="${build_t.java}" 
+        <javac destdir="${build_t.java}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="junit.compile.classpath"/>
             <compilerarg value="-proc:only"/>
@@ -168,14 +166,13 @@
 
         <!-- GlueGen Tests - Third -->
         <!-- This has a hard Java8 target spec test: source, target + bootclasspath -->
-        <javac destdir="${build_t.java}" 
+        <javac destdir="${build_t.java}"
                fork="yes"
                includeAntRuntime="false"
                nativeheaderdir="${build_t.gen}/native/"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="junit.compile.classpath"/>
             <compilerarg value="-proc:none"/>
@@ -185,13 +182,12 @@
 
         <!-- JCPP Tests - Fourth -->
         <!-- This has a soft Java8 bytecote target only (Using some build time APIs): target -->
-        <javac destdir="${build_t.java}" 
+        <javac destdir="${build_t.java}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jcpp.junit.compile.classpath"/>
             <compilerarg value="-proc:none"/>
@@ -222,7 +218,7 @@
     </target>
 
     <target name="android.package" depends="java.generate,java.build,native.build,jar.build" if="isAndroid">
-        <aapt.signed 
+        <aapt.signed
             assetsdir="resources/assets-test"
             jarbuilddir="${build_t}"
             jarbasename="gluegen-test"
@@ -260,23 +256,23 @@
         <echo message="   output.lib.name @{output.lib.name}" />
 
         <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
-        <property name="c.compiler.debug"     value="false" /> 
-        <!-- Optimise flags one of { none, size, speed, minimal, full, aggressive, extreme, unsafe } --> 
-        <property name="c.compiler.optimise"  value="none" /> 
+        <property name="c.compiler.debug"     value="false" />
+        <!-- Optimise flags one of { none, size, speed, minimal, full, aggressive, extreme, unsafe } -->
+        <property name="c.compiler.optimise"  value="none" />
 
         <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
-        <cc outtype="${output.lib.type}" 
-            objdir="${build_t.obj}" 
+        <cc outtype="${output.lib.type}"
+            objdir="${build_t.obj}"
             outfile="${build_t.lib}/@{output.lib.name}"
-            optimize="${c.compiler.optimise}" 
+            optimize="${c.compiler.optimise}"
             debug="${c.compiler.debug}"
-            multithreaded="true" 
-            exceptions="false" 
-            rtti="false">   
-  
+            multithreaded="true"
+            exceptions="false"
+            rtti="false">
+
           <fileset dir="${gluegen.root}"><patternset refid="@{c.compiler.src.files}"/></fileset>
-  
+
           <compiler extends="@{compiler.cfg.id}" >
             <sysincludepath path="${java.includes.dir}"/>
             <sysincludepath path="${java.includes.dir.platform}"/>
@@ -291,7 +287,7 @@
           </linker>
         </cc>
       </sequential>
-    </macrodef>  
+    </macrodef>
 
     <target name="junit.compile.check" depends="init">
       <uptodate property="junit.compile.skip">
@@ -311,7 +307,7 @@
 
     <target name="dump.localinfo">
         <echo message="Dump Local Info" />
-        <java fork="false" failonerror="no" classname="com.jogamp.common.util.TestSystemPropsAndEnvs" classpath="${junit.run.jars}"/>  
+        <java fork="false" failonerror="no" classname="com.jogamp.common.util.TestSystemPropsAndEnvs" classpath="${junit.run.jars}"/>
     </target>
 
     <target name="junit.run.remote.ssh" if="isCrosscompilation" unless="isAndroid">
@@ -380,7 +376,7 @@ ${line.separator}
 <!--
 rsync:
     -a == -rlptgoD
-    -rt 
+    -rt
 -->
 
     <target name="junit.run.remote.adb" if="isAndroidARMv7">
@@ -474,7 +470,7 @@ chmod 644 ${results}/* \${line.separator}
             <jvmarg value="-Djogamp.debug.JarUtil=true"/>
             <jvmarg value="-Djogamp.debug.TempJarCache=true"/>
             <jvmarg value="-Djogamp.debug.ProcAddressHelper=true"/>
-            <jvmarg value="-verbose:jni"/> 
+            <jvmarg value="-verbose:jni"/>
             <jvmarg value="-client"/>
             -->
             <formatter usefile="false" type="plain"/>
@@ -537,7 +533,7 @@ chmod 644 ${results}/* \${line.separator}
         <antcall target="test-zip-archive" inheritRefs="true" />
     </target>
 
-    <!-- 
+    <!--
 
         Hook all junit.test* ..
 
@@ -558,7 +554,7 @@ chmod 644 ${results}/* \${line.separator}
         </copy>
     </target>
 
-    <!-- 
+    <!--
 
         junit.test1
 
@@ -672,7 +668,7 @@ chmod 644 ${results}/* \${line.separator}
                  linker.cfg.id="linker.test1.runtime.cfg.id"/>
     </target>
 
-    <!-- 
+    <!--
 
         junit.test2
 
@@ -783,7 +779,7 @@ chmod 644 ${results}/* \${line.separator}
     <!-- updates / create the test results zip file -->
     <target name="test-zip-archive" depends="init">
         <archive.7z destfile="${build}/${test.archive.name}.7z"
-                    basedir="${project.root}" 
+                    basedir="${project.root}"
                     includes="${rootrel.build}/test/results ${rootrel.build}/test/results-x64 ${rootrel.build}/test/results-x32" />
     </target>
 

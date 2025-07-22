@@ -2,8 +2,8 @@
 <project name="jogamp-androidtasks" basedir=".">
     <dirname property="jogamp-androidtasks.basedir" file="${ant.file.jogamp-androidtasks}"/>
     <taskdef resource="net/sf/antcontrib/antlib.xml">
-      <classpath> 
-        <pathelement location="${jogamp-androidtasks.basedir}/lib/ant-contrib-1.0b3.jar"/> 
+      <classpath>
+        <pathelement location="${jogamp-androidtasks.basedir}/lib/ant-contrib-1.0b3.jar"/>
       </classpath>
     </taskdef>
 
@@ -24,7 +24,7 @@
         <echo>res: ${m.aapt.apkbasename1}</echo>
     </target>
     <!---
-        <aapt.signed 
+        <aapt.signed
             jarbuilddir="${build}"   // jar build location
             jarbasename="gluegen-rt" // jar base file name
             nativebuilddir="${gluegen.lib.dir}" // native library build location
@@ -33,7 +33,7 @@
             androidresources.path="resources/android/res"
             jarmanifest.path="${build}/Manifest-rt.temp" // optional
             version.code="${jogamp_int_version}"
-            version.name="${gluegen.version.plus}" 
+            version.name="${gluegen.version.plus}"
 
             // optional values, for having a valid keystore:
             keystore.file="./my-kstore.jks"  // user supplied keystore
@@ -44,7 +44,7 @@
 
         Even though we have impl. signing w/ an own keystore,
         we strongly discourage users to actually use it in an automated environment!
-        Pls sign your apps manually. 
+        Pls sign your apps manually.
       -->
 
     <macrodef name="aapt.signed">
@@ -79,7 +79,7 @@
         <var name="m.aapt.keystore.file" unset="true"/>
         <var name="m.aapt.java.encoding" unset="true"/>
 
-        <!-- ${m.aapt.apkbasename}: 
+        <!-- ${m.aapt.apkbasename}:
              if ( @{android.abi} != 'generic' ) {
                 ${m.aapt.apkbasename} := ( @{jarbasename} - ( optional postfix '-android' ) ) + ${os.and.arch} ;
              } else {
@@ -165,8 +165,7 @@
         <echo>aapt.signed ${m.aapt.apkbasename}: compiling R.java...</echo>
         <javac encoding="${m.aapt.java.encoding}"
             includeAntRuntime="false"
-            source="${target.sourcelevel}" 
-            target="${target.targetlevel}" 
+            release="${target.releaselevel}"
             debug="false" extdirs=""
             destdir="${m.aapt.build.apk}/temp/classes"
             verbose="true">
@@ -205,7 +204,7 @@
             <arg line="@{jarbuilddir}/@{jarbasename}.jar"/>
             <arg line="${m.aapt.build.apk}/temp/classes.zip"/>
         </exec>
-        
+
         <echo>aapt.signed ${m.aapt.apkbasename}: packaging</echo>
         <exec dir="." executable="aapt" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line="package"/>
@@ -234,7 +233,7 @@
 
             <arg line="${m.aapt.build.apk}/image/"/>
         </exec>
-        
+
         <echo>aapt.signed ${m.aapt.apkbasename}: gen temp keystore @{keystore.alias} @ ${m.aapt.build.apk}/debug.keystore</echo>
         <exec dir="." executable="keytool" failonerror="true">
             <arg value="-genkey"/>
@@ -302,5 +301,5 @@
         <delete dir="${m.aapt.build.apk}" includeEmptyDirs="true" quiet="true" failonerror="false" />
         <delete file="${m.aapt.raw.file.name}" includeEmptyDirs="true" quiet="true" failonerror="false" />
     </sequential>
-  </macrodef>  
+  </macrodef>
 </project>

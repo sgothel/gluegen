@@ -1979,8 +1979,7 @@
            includes="${nativejartag.prefix}/@{module}/**"
            includeAntRuntime="false"
            encoding="UTF-8"
-           source="${target.sourcelevel}"
-           target="${target.targetlevel}">
+           release="${target.releaselevel}">
         <src path="${nativejarfile.tmpdir}/java" />
       </javac>
       <jar destfile="@{nativejarfile}" manifest="@{manifestfile}" filesonly="true">

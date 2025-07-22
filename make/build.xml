@@ -27,7 +27,7 @@
   </target>
 
   <target name="init.base" depends="jogamp.env.init,gluegen.properties.load.user,gluegen.cpptasks.detect.os,setup.excludes.nsig">
-    <!-- Create the classpath for compiling GlueGen. 
+    <!-- Create the classpath for compiling GlueGen.
          This requires the user-defined "antlr.jar" property. -->
     <path id="cc_gluegen.classpath">
       <pathelement location="${antlr.jar}" />
@@ -47,7 +47,7 @@
       <pathelement location="${android-min.jar}"/>
     </path>
 
-    <!-- Create the classpath for compiling GlueGen. 
+    <!-- Create the classpath for compiling GlueGen.
          This requires the user-defined "antlr.jar" property. -->
     <path id="cc_gluegen_android.classpath">
       <pathelement location="${antlr.jar}" />
@@ -130,12 +130,12 @@
     <mkdir dir="${src.generated.c}/Windows" />
     <mkdir dir="${classes}" />
 
-    <!-- Create the classpath for ANTLR.  
+    <!-- Create the classpath for ANTLR.
          This requires the user-defined "antlr.jar" property. -->
     <path id="antlr.classpath">
       <pathelement location="${antlr.jar}" />
     </path>
-    
+
     <!-- Create the classpath for using GlueGen. -->
     <path id="gluegen.classpath" >
       <pathelement location="${classes}" />
@@ -145,7 +145,7 @@
     <!-- The location of the GlueGen source and the C grammar files. -->
     <property name="c.grammar" value="${src.antlr}/com/jogamp/gluegen/cgram" />
     <property name="j.grammar" value="${src.antlr}/com/jogamp/gluegen/jgram" />
-        
+
     <!-- The resulting location of the generated Java files from the
       - C grammar via ANTLR. -->
     <property name="c.grammar.out.dir" value="${src.generated.java}/com/jogamp/gluegen/cgram" />
@@ -166,6 +166,7 @@
     <property name="gluegen-rt.classes" value="com/jogamp/gluegen/runtime/**"/>
     <property name="jogamp.common.classes" value="com/jogamp/common/** jogamp/common/**"/>
     <property name="java.part.jcpp" value="com/jogamp/gluegen/jcpp/**"/>
+    <property name="java.part.java11" value="com/jogamp/gluegen/structgen/**"/>
 
     <property name="gluegen.excludes.all" value="${gluegen.excludes.nsig} ${jogamp-android-launcher.classes}" />
   </target>
@@ -177,9 +178,9 @@
   </target>
 
   <target name="set.debug">
-    <property name="c.compiler.debug" value="true" /> 
-    <property name="javacdebug"       value="true" /> 
-    <property name="javacdebuglevel"  value="source,lines,vars" /> 
+    <property name="c.compiler.debug" value="true" />
+    <property name="javacdebug"       value="true" />
+    <property name="javacdebuglevel"  value="source,lines,vars" />
   </target>
   <target name="init.debug" depends="set.debug, init"/>
 
@@ -223,7 +224,7 @@
   </target>
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Compile the native C code for GlueGen's dynamic linker interface.
       -->
 
@@ -232,31 +233,31 @@
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
     </target>
-    
+
     <target name="declare.win32.vc7" if="isVC7">
       <echo message="Win32.VC7" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
     </target>
-    
+
     <target name="declare.win32.vc8" if="isVC8">
       <echo message="Win32.VC8" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
     </target>
-    
+
     <target name="declare.win32.vc8_x64" if="isVC8_X64">
       <echo message="Win32.VC8_X64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
     </target>
-    
+
     <target name="declare.win32.vc9" if="isVC9">
       <echo message="Win32.VC9" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
     </target>
-    
+
     <target name="declare.win32.mingw" if="isMingW32">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" />
@@ -275,26 +276,26 @@
 
     <target name="declare.linux.x86" if="isLinuxX86">
       <echo message="Linux.x86" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.x86" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux.x86" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.x86" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.x86" />
     </target>
-    
+
     <target name="declare.linux.amd64" if="isLinuxAMD64">
       <echo message="Linux.AMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" />
       <property name="linker.cfg.id"                        value="linker.cfg.linux.amd64" />
     </target>
-    
+
     <target name="declare.linux.ia64" if="isLinuxIA64">
       <echo message="Linux.IA64" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux" />
     </target>
 
     <target name="declare.linux.armv6" if="isLinuxARMv6">
       <echo message="Linux.armv6" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv6" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux.armv6" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv6" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.armv6" />
     </target>
 
     <target name="declare.linux.aarch64" if="isLinuxARM64">
@@ -305,32 +306,32 @@
 
     <target name="declare.linux.alpha" if="isLinuxAlpha">
       <echo message="Linux.alpha" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux.alpha" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.alpha" />
     </target>
 
     <target name="declare.linux.hppa" if="isLinuxHppa">
       <echo message="Linux.hppa" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux.hppa" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.hppa" />
     </target>
 
     <target name="declare.linux.mips" if="isLinuxMips">
       <echo message="Linux.mips" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux.mips" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.mips" />
     </target>
 
     <target name="declare.linux.mipsel" if="isLinuxMipsel">
       <echo message="Linux.mipsel" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux.mipsel" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.mipsel" />
     </target>
 
     <target name="declare.linux.ppc" if="isLinuxPpc">
       <echo message="Linux.ppc" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux.ppc" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.ppc" />
     </target>
 
     <target name="declare.linux.ppc64" if="isLinuxPpc64">
@@ -353,22 +354,22 @@
 
     <target name="declare.linux.s390" if="isLinuxs390">
       <echo message="Linux.s390" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux.s390" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.s390" />
     </target>
 
     <target name="declare.linux.s390x" if="isLinuxs390x">
       <echo message="Linux.s390x" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux.s390x" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.s390x" />
     </target>
 
     <target name="declare.linux.sparc" if="isLinuxSparc">
       <echo message="Linux.sparc" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux.sparc" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.sparc" />
     </target>
-    
+
     <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.linux.hppa,declare.linux.mips,declare.linux.mipsel,declare.linux.ppc,declare.linux.ppc64,declare.linux.ppc64le,declare.linux.riscv64,declare.linux.s390,declare.linux.s390x,declare.linux.sparc,declare.linux.armv6,declare.linux.aarch64" if="isLinux" >
       <property name="c.src.dir.os"                         value="unix" />
     </target>
@@ -379,47 +380,47 @@
 
     <target name="declare.solaris32" if="isSolaris32Bit">
       <echo message="Solaris" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.solaris" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" />
+      <property name="linker.cfg.id"                        value="linker.cfg.solaris" />
     </target>
- 
+
     <target name="declare.solarisSparcv9" if="isSolarisSparcv9">
       <echo message="SolarisSparcv9" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.sparcv9" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.solaris.sparcv9" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.sparcv9" />
+      <property name="linker.cfg.id"                        value="linker.cfg.solaris.sparcv9" />
     </target>
 
     <target name="declare.solarisAMD64" if="isSolarisAMD64">
       <echo message="SolarisAMD64" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.amd64" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.solaris.amd64" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.amd64" />
+      <property name="linker.cfg.id"                        value="linker.cfg.solaris.amd64" />
     </target>
-   
+
     <target name="declare.solaris" depends="declare.solaris32,declare.solarisSparcv9,declare.solarisAMD64" if="isSolaris" >
       <property name="c.src.dir.os"                         value="unix" />
     </target>
 
     <target name="declare.macosx" if="isOSX">
       <echo message="MacOSX" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.macosx" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" />
+      <property name="linker.cfg.id"                        value="linker.cfg.macosx" />
       <property name="c.src.dir.os"                         value="unix" />
     </target>
-    
+
     <target name="declare.ios.amd64" if="isIOSAmd64">
       <echo message="IOSAmd64" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.ios.amd64" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.ios.amd64" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.ios.amd64" />
+      <property name="linker.cfg.id"                        value="linker.cfg.ios.amd64" />
       <property name="c.src.dir.os"                         value="unix" />
     </target>
-    
+
     <target name="declare.ios.arm64" if="isIOSArm64">
       <echo message="IOSArm64" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.ios.arm64" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.ios.arm64" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.ios.arm64" />
+      <property name="linker.cfg.id"                        value="linker.cfg.ios.arm64" />
       <property name="c.src.dir.os"                         value="unix" />
     </target>
-    
+
     <target name="declare.freebsd.amd64" if="isFreeBSDAMD64">
       <echo message="FreeBSDAMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd" />
@@ -485,24 +486,24 @@
       <echo message="Compiling ${c.compiler.src.files.os} ${c.compiler.src.files.common}" />
       <echo message="user.dir=${user.dir}" />
 
-      <cc outtype="${output.lib.type}" 
+      <cc outtype="${output.lib.type}"
           usehighleveltool="true"
           writesoname="true"
           objdir="${gluegen.lib.dir}"
           outfile="${gluegen.lib.dir}/${output.lib.name}"
-          optimize="${c.compiler.optimise}" 
+          optimize="${c.compiler.optimise}"
           debug="${c.compiler.debug}"
-          multithreaded="true" 
-          exceptions="false" 
-          rtti="false">   
+          multithreaded="true"
+          exceptions="false"
+          rtti="false">
 
         <!-- TODO: versioninfo  companyname="java.net"
                       legalcopyright="Copyright"
-                      productname="GlueGen" 
+                      productname="GlueGen"
                       productversion="x.y.z"
                       description="Description"
-                      fileversion="x.y.z" 
-                      filecomments="File Comment" /-->      
+                      fileversion="x.y.z"
+                      filecomments="File Comment" /-->
 
         <fileset dir="..">
           <patternset>
@@ -527,8 +528,8 @@
 
       </cc>
 
-      <gluegen.make.libsymbols builddir="${build}" 
-         nativelib="${gluegen.lib.dir}/${output.lib.name.os}" 
+      <gluegen.make.libsymbols builddir="${build}"
+         nativelib="${gluegen.lib.dir}/${output.lib.name.os}"
          symbolsfile="${gluegen.lib.dir}/${native.library.prefix}${output.lib.name}.symbols" />
 
       <antcall target="gluegen.cpptasks.striplibs" inheritRefs="true">
@@ -536,7 +537,7 @@
       </antcall>
 
       <antcall target="c.manifest" inheritRefs="true" />
-    </target>  
+    </target>
 
     <target name="gluegen.package.native" depends="init, c.configure" unless="gluegen.package.native.done" >
       <property name="gluegen.package.native.done" value="true" />
@@ -560,13 +561,13 @@
 
       <native.tag.jar objdir="${build}/obj"
                       nativejarfile="${build}/gluegen-rt-natives-${os.and.arch}.jar"
-                      manifestfile="${build}/Manifest-rt-natives.temp" 
+                      manifestfile="${build}/Manifest-rt-natives.temp"
                       module="common"
                       includelibs="*${output.lib.name}.${native.library.suffix}" />
 
       <!-- Produce duplicates for different configurations, since non-native-jar aliasing (Bug 1023/Bug 1024) -->
       <!-- copy file="${build}/gluegen-rt-natives-${os.and.arch}.jar" tofile="${build}/gluegen-rt-android-natives-${os.and.arch}.jar"/ -->
-    </target>  
+    </target>
 
   <!-- ================================================================== -->
   <!--
@@ -726,7 +727,7 @@
       <classpath refid="antlr.classpath" />
     </antlr>
   </target>
-  
+
   <target name="gluegen.build.javase">
     <!-- Because ANTLR looks for importVocab files in the current
          working directory, it likes to have all of its files,
@@ -779,21 +780,19 @@
          original source in multiple stages below. -->
 
     <!-- Compile gluegen-rt first including generation of native headers -->
-    <!-- This has a hard Java8 target spec requirement: source, target + bootclasspath -->
+    <!-- This has a hard Java8 target spec requirement: release {source, target} -->
     <javac destdir="${classes}"
            includeAntRuntime="false"
            includes="${gluegen-rt.classes} ${jogamp.common.classes}"
-           excludes="${gluegen.excludes.all} ${java.part.android}"
+           excludes="${gluegen.excludes.all} ${java.part.android} ${java.part.java11}"
            nativeheaderdir="${src.generated.c}"
            memoryMaximumSize="${javac.memorymax}"
            encoding="UTF-8"
-           source="${target.sourcelevel}" 
-           target="${target.targetlevel}" 
+           release="${target.releaselevel}"
            debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
       <classpath refid="cc_gluegen.classpath" />
-      <!-- compilerarg line="release ${target.releaselevel}"/ -->
     </javac>
 
     <!-- move platform-specific native headers into the right directories -->
@@ -808,18 +807,30 @@
     </copy>
 
     <!-- Compile gluegen (compile time).  -->
-    <!-- This has a soft Java8 bytecote target only (Using some build time APIs): target -->
+    <!-- This has a hard Java8 target spec requirement: release {source, target} -->
+    <javac destdir="${classes}"
+           includeAntRuntime="true"
+           excludes="${gluegen.excludes.all} ${gluegen-rt.classes} ${java.part.android} ${java.part.java11}"
+           memoryMaximumSize="${javac.memorymax}"
+           encoding="UTF-8"
+           release="${target.releaselevel}"
+           debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+      <src path="${src.jcpp}" />
+      <src path="${src.java}" />
+      <src path="${src.generated.java}" />
+      <classpath refid="cc_gluegen.classpath" />
+    </javac>
+
+    <!-- Compile gluegen (compile time).  -->
+    <!-- This has a Java11 bytecote target for java.part.java11 -->
     <javac destdir="${classes}"
            includeAntRuntime="true"
            excludes="${gluegen.excludes.all} ${gluegen-rt.classes} ${java.part.android}"
            memoryMaximumSize="${javac.memorymax}"
            encoding="UTF-8"
-           source="${target.sourcelevel}" 
-           target="${target.targetlevel}" 
+           release="${target.buildlevel}"
            debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-      <src path="${src.jcpp}" />
       <src path="${src.java}" />
-      <src path="${src.generated.java}" />
       <classpath refid="cc_gluegen.classpath" />
     </javac>
   </target>
@@ -997,11 +1008,11 @@
          referenced via a Class-Path entry in the Manifest of
          gluegen.jar. -->
     <copy file="${antlr.jar}" todir="${build}" />
-    
-    <!-- copy a jnlp with empty codebase into build folder for local testing 
+
+    <!-- copy a jnlp with empty codebase into build folder for local testing
          overwrite property in gluegen.proerpties if desired             -->
     <property name="gluegen.jnlp.codebase" value=""/>
-    
+
     <copy file="${gluegen.root}/jnlp-files/gluegen-rt.jnlp" todir="${build}">
         <filterchain>
             <replacestring from="GLUEGEN_CODEBASE_TAG" to="${gluegen.jnlp.codebase}"/>
@@ -1018,15 +1029,14 @@
            excludes="${gluegen.excludes.all}"
            memoryMaximumSize="${javac.memorymax}"
            encoding="UTF-8"
-           source="${target.sourcelevel}" 
-           target="${target.targetlevel}" 
+           release="${target.releaselevel}"
            debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
       <classpath refid="cc_gluegen_android.classpath" />
     </javac>
   </target>
-  
+
   <target name="gluegen.package.android" if="android-jars.available">
     <java classname="com.jogamp.common.util.SHASum" logError="true" failonerror="true" fork="true" newenvironment="true"
           classpath="${classes}"
@@ -1080,7 +1090,7 @@
       </fileset>
     </jar>
   </target>
-  
+
   <target name="gluegen.build.java" depends="gluegen.build.java.impl">
       <condition property="gluegen.package.java.done" value="true">
         <isset property="gluegen.build.skip.java"/>
@@ -1154,8 +1164,7 @@
            excludes="${jogamp.common.classes}"
            memoryMaximumSize="${javac.memorymax}"
            encoding="UTF-8"
-           source="${target.sourcelevel}" 
-           target="${target.targetlevel}" 
+           release="${target.releaselevel}"
            debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.java}" />
       <classpath refid="android.classpath" />
@@ -1196,7 +1205,7 @@
         <include name="${jogamp-android-launcher.classes}" />
       </fileset>
     </jar>
-    <aapt.signed 
+    <aapt.signed
         assetsdir="resources/assets-launcher"
         jarbuilddir="${build}"
         jarbasename="jogamp-android-launcher"
@@ -1221,7 +1230,7 @@
 
   <target name="android.package" depends="gluegen.cpptasks.detect.os,gluegen.build.check.aapt" if="isAndroid" unless="gluegen.build.skip.aapt" >
 
-    <aapt.signed 
+    <aapt.signed
         assetsdir="resources/assets"
         jarbuilddir="${build}"
         jarbasename="gluegen-rt-android"
@@ -1236,7 +1245,7 @@
       />
   </target>
 
-  <target name="base.compile" description="Base compile ensuring valid build results w/o tampering the artifact.properties" 
+  <target name="base.compile" description="Base compile ensuring valid build results w/o tampering the artifact.properties"
                               depends="clean-temp, android-launcher.build, gluegen.build.java, gluegen.build.native, gluegen.build.shasum, gluegen.package.java, gluegen.package.native, android-launcher.package" />
 
   <target name="all.no_junit" description="Release build" depends="base.compile, tag.build, android.package, developer-zip-archive" >
@@ -1259,13 +1268,13 @@
       <fileset dir="${project.root}/build-temp" />
       <fileset dir="${project.root}" includes="make/GnuCTreeParserTokenTypes.txt make/STDCTokenTypes.txt" />
     </delete>
-  </target>    
+  </target>
 
   <target name="clean" depends="clean-temp">
     <delete includeEmptyDirs="true" failonerror="false">
       <fileset dir="${build}" />
     </delete>
-  </target>    
+  </target>
 
   <target name="tag.build" depends="init">
     <echo message='gluegen.build.version=${jogamp.version}${line.separator}'      file="${build}/artifact.properties"/>
@@ -1422,7 +1431,7 @@
         <!-- Put  the files created by target gluegen.build from
          build directory to maven repository, local or remote
          (targets maven.install and maven.deploy.snapshot respectively)-->
-    
+
     <import file="maven-common.xml" />
 
     <target name="maven.prepare.pom">

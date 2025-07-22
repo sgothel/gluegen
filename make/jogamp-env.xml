@@ -1,31 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Current runtime requirements are:
-        - Java 11 (class file 55)
+        - Java 8 (class file 52)
         - Android SDK API level 26 (Version 8.0 Oreo, released August 2017)
 
-     We dropped previously supported Java 8 (class file 52), 
-     since OpenJDK 21 signals its end-of-life.
-
-     Official production builds are performed _for_ Java 11
+     Future versions consider using
         - Java 11 (class file 55)
-        - Android SDK API level 26 (Version 8.0 Oreo, released August 2017)
+        - Android SDK API level 32 (Version 12 Snow Cone, released 2022)
+          - See <https://developer.android.com/build/jdks>
+          - See <https://developer.android.com/studio/write/java11-default-support-table>
 
      Official production builds are performed _on_ OpenJDK 21
-     and a Java JDK 17 or greater is required!
-
-     Target Java 11 baseline is chosen today, June 2025,
-     since OpenJDK 11 is well supported on desktop and mobile devices.
+     and a Java JDK 17 or greater is required.
 
      +++
 
      Android: Aligned with Android SDK build-tools 36 and NDK 29 as of 2025-06-25
-
-     Android supports Java 11 language features 
-     either directly since API 32 (Version 12)
-     <https://developer.android.com/build/jdks>
-     or via desugar in the d8 dex-tool.
-     <https://developer.android.com/studio/write/java11-default-support-table>
 
      On 2025-08-31: Android 15 (API level 35) or higher is required for stored apps.
      <https://developer.android.com/google/play/requirements/target-sdk>
@@ -37,10 +27,14 @@
 
      It is strongly recommended to test with the x86_64 and maybe x86 emulator
      using the latest API level.
-     On 2025-07-11 we have tested using Android 15, API 35 on the x86_64 emulator.
+
+     On 2025-07-20 we have tested `jogl-demos-fat-android-${arch}.apk`
+     using an `x86` and `x86_64` emulator for
+     - Android  8, API 26
+     - Android 14, API 34
+     - Android 15, API 35
 
      Old:
-       - On 2025-06-25 we have tested using Android 14, API 34 on the x86_64 emulator.
        - On 2019-12-25 we have tested using Android 10, API 29 on the x86 emulator.
        - Further testing should be performed from Android 5, API 21, to Android 9, API 28,
          as well as on aarch64 and armv7a devices.
@@ -163,8 +157,10 @@
         </not>
     </condition>
 
-  	<property name="target.sourcelevel" value="11"/>
-  	<property name="target.targetlevel" value="11"/>
+  	<property name="target.sourcelevel" value="8"/>
+  	<property name="target.targetlevel" value="8"/>
+  	<property name="target.releaselevel" value="8"/>
+  	<property name="target.buildlevel" value="11"/>
 
     <property name="jogamp.jar.codebase"      value=""/> <!-- A jogamp build uses value "Codebase: *.jogamp.org" -->
     <echo message="jogamp.jar.codebase        ${jogamp.jar.codebase}"/>
@@ -218,68 +214,10 @@
         </not>
     </condition>
 
-    <condition property="target.sourcelevel" value="${env.SOURCE_LEVEL}">
-        <not>
-         <equals arg1="${env.SOURCE_LEVEL}" arg2="$${env.SOURCE_LEVEL}" casesensitive="true" />
-        </not>
-    </condition>
-
-    <condition property="target.targetlevel" value="${env.TARGET_LEVEL}">
-        <not>
-         <equals arg1="${env.TARGET_LEVEL}" arg2="$${env.TARGET_LEVEL}" casesensitive="true" />
-        </not>
-    </condition>
-
-    <condition property="target.releaselevel" value="${env.RELEASE_LEVEL}">
-        <not>
-         <equals arg1="${env.RELEASE_LEVEL}" arg2="$${env.RELEASE_LEVEL}" casesensitive="true" />
-        </not>
-    </condition>
-
-    <condition property="target.user.set" value="true">
-          <and>
-              <isset property="target.sourcelevel"/>
-              <isset property="target.targetlevel"/>
-              <!-- isset property="target.releaselevel"/ -->
-          </and>
-    </condition>
-    <echo message="target.user.set            ${target.user.set}"/>
     <echo message="target.sourcelevel         ${target.sourcelevel}"/>
     <echo message="target.targetlevel         ${target.targetlevel}"/>
     <echo message="target.releaselevel        ${target.releaselevel}"/>
-
-  	<!--
-    <fail message="You need to specify all properties 'target.sourcelevel' and 'target.targetlevel'.">
-      <condition>
-        <not>
-          <istrue value="${target.user.set}"/>
-        </not>
-      </condition>
-    </fail> -->
-
-    <fail message="Unsupported Target Java sourcelevel: ${target.sourcelevel}. Make sure that the sourcelevel is set to 11.">
-        <condition>
-            <not>
-                <contains string="${target.sourcelevel}" substring="11" casesensitive="false" />
-            </not>
-        </condition>
-    </fail>
-    <fail message="Unsupported Target Java targetlevel: ${target.targetlevel}. Make sure that the targetlevel is set to 11.">
-        <condition>
-            <not>
-                <contains string="${target.targetlevel}" substring="11" casesensitive="false" />
-            </not>
-        </condition>
-    </fail>
-    <!-- fail message="Unsupported Target Java releaselevel: ${target.releaselevel}. Make sure that the releaselevel is set to 8.">
-        <condition>
-            <not>
-                <or>
-                    <contains string="${target.releaselevel}" substring="8" casesensitive="false" />
-                </or>
-            </not>
-        </condition>
-    </fail -->
+    <echo message="target.buildlevel          ${target.buildlevel}"/>
 
     <property name="javacdebug"       value="true" />
     <property name="javacdebuglevel"  value="source,lines" />
