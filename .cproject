@@ -25,8 +25,8 @@
 							<builder autoBuildTarget="all" buildPath="${workspace_loc:/gluegen}/Release" cleanBuildTarget="clean" id="org.eclipse.cdt.build.core.internal.builder.860125787" incrementalBuildTarget="all" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CDT Internal Builder" superClass="org.eclipse.cdt.build.core.internal.builder"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.2030005064" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.so.release.581765785" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.so.release">
-								<option id="gnu.cpp.compiler.so.release.option.optimization.level.1320595851" name="Optimization Level" superClass="gnu.cpp.compiler.so.release.option.optimization.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
-								<option defaultValue="gnu.cpp.compiler.debugging.level.none" id="gnu.cpp.compiler.so.release.option.debugging.level.1169445131" name="Debug Level" superClass="gnu.cpp.compiler.so.release.option.debugging.level" useByScannerDiscovery="false" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.so.release.option.optimization.level.1320595851" name="Optimization level" superClass="gnu.cpp.compiler.so.release.option.optimization.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
+								<option defaultValue="gnu.cpp.compiler.debugging.level.none" id="gnu.cpp.compiler.so.release.option.debugging.level.1169445131" name="Debug level" superClass="gnu.cpp.compiler.so.release.option.debugging.level" useByScannerDiscovery="false" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.dialect.std.2028533481" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.c++2a" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.warnings.extrawarn.1815049683" name="Extra warnings (-Wextra)" superClass="gnu.cpp.compiler.option.warnings.extrawarn" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.warnings.toerrors.1683090955" name="Warnings as errors (-Werror)" superClass="gnu.cpp.compiler.option.warnings.toerrors" useByScannerDiscovery="false" value="true" valueType="boolean"/>
@@ -36,8 +36,8 @@
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1913832307" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.so.release.554448294" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.so.release">
-								<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.so.release.option.optimization.level.1495906270" name="Optimization Level" superClass="gnu.c.compiler.so.release.option.optimization.level" useByScannerDiscovery="false" valueType="enumerated"/>
-								<option defaultValue="gnu.c.debugging.level.none" id="gnu.c.compiler.so.release.option.debugging.level.25147611" name="Debug Level" superClass="gnu.c.compiler.so.release.option.debugging.level" useByScannerDiscovery="false" valueType="enumerated"/>
+								<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.so.release.option.optimization.level.1495906270" name="Optimization level" superClass="gnu.c.compiler.so.release.option.optimization.level" useByScannerDiscovery="false" valueType="enumerated"/>
+								<option defaultValue="gnu.c.debugging.level.none" id="gnu.c.compiler.so.release.option.debugging.level.25147611" name="Debug level" superClass="gnu.c.compiler.so.release.option.debugging.level" useByScannerDiscovery="false" valueType="enumerated"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.include.paths.1580781813" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/include}&quot;"/>
 								</option>
