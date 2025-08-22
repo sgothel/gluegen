@@ -220,9 +220,6 @@ public class JarUtil {
         }
         ssp = ssp.substring(idx+1); // just the jar name
 
-        if(0 >= ssp.lastIndexOf(".jar")) {
-            throw new IllegalArgumentException("No Jar name in <"+classJarUri+">");
-        }
         if(DEBUG) {
             System.err.println("getJarName res: "+ssp);
         }
