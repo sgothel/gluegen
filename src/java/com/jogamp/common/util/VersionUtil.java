@@ -34,16 +34,20 @@ import com.jogamp.common.os.Platform;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+import jogamp.common.Debug;
 import jogamp.common.os.PlatformPropsImpl;
 
 public class VersionUtil {
+    private static final boolean DEBUG = Debug.debug("VersionUtil");
 
     public static final String SEPERATOR = "-----------------------------------------------------------------------------------------------------";
 
@@ -114,8 +118,8 @@ public class VersionUtil {
 
     /**
      * Returns the manifest of the jar which contains the specified extension.
-     * The provided ClassLoader is used for resource loading.
-     * @param cl A ClassLoader which should find the manifest.
+     * The provided ClassLoader is used for resource loading, while excluding its parent-classloader resources.
+     * @param cl ClassLoader used to locate the manifest.
      * @param extension The value of the 'Extension-Name' jar-manifest attribute; used to identify the manifest.
      * @return the requested manifest, or null if not matching or none found.
      */
@@ -125,8 +129,8 @@ public class VersionUtil {
 
     /**
      * Returns the manifest of the jar which contains one of the specified extensions.
-     * The provided ClassLoader is used for resource loading.
-     * @param cl A ClassLoader which should find the manifest.
+     * The provided ClassLoader is used for resource loading, while excluding its parent-classloader resources.
+     * @param cl ClassLoader used to locate the manifest.
      * @param extensions The values of many 'Extension-Name's jar-manifest attribute; used to identify the manifest.
      *                   Matching is applied in decreasing order, i.e. first element is favored over the second, etc.
      * @return the requested manifest, or null if not matching or none found.
@@ -137,8 +141,8 @@ public class VersionUtil {
 
     /**
      * Returns the manifest of the jar which contains one of the specified extensions.
-     * The provided ClassLoader is used for resource loading.
-     * @param cl A ClassLoader which should find the manifest.
+     * The provided ClassLoader is used for resource loading, while excluding its parent-classloader resources.
+     * @param cl ClassLoader used to locate the manifest.
      * @param extensions The values of many 'Extension-Name's jar-manifest attribute; used to identify the manifest.
      *                   Matching is applied in decreasing order, i.e. first element is favored over the second, etc.
      * @param acceptFirst pass true to accept the first Manifest w/ an extension-name if non matching extension is found
@@ -148,9 +152,24 @@ public class VersionUtil {
         final Manifest[] extManifests = new Manifest[extensions.length];
         Manifest firstManifest = null;
         try {
-            final Enumeration<URL> resources = cl.getResources("META-INF/MANIFEST.MF");
-            while (resources.hasMoreElements()) {
-                final URL resource = resources.nextElement();
+            if( DEBUG ) {
+                System.err.println();
+                System.err.println("XXXX: getManifest: acceptFirst "+acceptFirst+", extensions "+Arrays.asList(extensions));
+            }
+            final List<URL> resources = getResources(cl, "META-INF/MANIFEST.MF");
+            final List<URL> parentResources = getResources(cl.getParent(), "META-INF/MANIFEST.MF");
+            if( DEBUG ) {
+                for(final URL r : parentResources) {
+                    System.err.println("XXXX: drop parent "+r);
+                }
+            }
+            resources.removeAll(parentResources);
+            if( DEBUG ) {
+                for(final URL r : resources) {
+                    System.err.println("XXXX: uniq "+r);
+                }
+            }
+            for(final URL resource : resources) {
                 final InputStream is = resource.openStream();
                 final Manifest manifest;
                 try {
@@ -160,6 +179,7 @@ public class VersionUtil {
                 }
                 final Attributes attributes = manifest.getMainAttributes();
                 final String extensionName = getExtensionName(attributes);
+                if( DEBUG ) { System.err.println("XXXX: ext-name "+extensionName+", resource "+resource); }
                 if( null != extensionName && null != attributes) {
                     if( null == firstManifest ) {
                         firstManifest = manifest;
@@ -188,6 +208,17 @@ public class VersionUtil {
             return firstManifest;
         }
         return null;
+    }
+    private static List<URL> getResources(final ClassLoader cl, final String name) throws IOException {
+        final List<URL> res = new ArrayList<URL>();
+        if( null != cl ) {
+            final Enumeration<URL> resources = cl.getResources(name);
+            while (resources.hasMoreElements()) {
+                final URL resource = resources.nextElement();
+                res.add(resource);
+            }
+        }
+        return res;
     }
 
     public static StringBuilder getFullManifestInfo(final Manifest mf, StringBuilder sb) {
