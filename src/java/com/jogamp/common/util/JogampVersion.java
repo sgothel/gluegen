@@ -67,22 +67,20 @@ public class JogampVersion {
 
     private final String androidPackageVersionName;
 
-    protected JogampVersion(final String packageName, final Manifest mf) {
+    protected JogampVersion(final Manifest mf) {
         if( null != mf ) {
             // use provided valid data
             this.mf = mf;
-            this.packageName = packageName;
+            this.packageName = VersionUtil.getExtensionName(mf);
         } else {
-            // try FAT jar file
-            final Manifest fatMF = VersionUtil.getManifest(JogampVersion.class.getClassLoader(), packageNameFAT);
+            // try FAT jar file and accept first Manifest w/ extension-name if none matches
+            final Manifest fatMF = VersionUtil.getManifest(JogampVersion.class.getClassLoader(), new String[] { packageNameFAT }, true);
             if( null != fatMF ) {
-                // use FAT jar file
                 this.mf = fatMF;
-                this.packageName = packageNameFAT;
+                this.packageName = VersionUtil.getExtensionName(fatMF);
             } else {
-                // use faulty data, unresolvable ..
                 this.mf = new Manifest();
-                this.packageName = packageName;
+                this.packageName = "unknown";
             }
         }
         this.hash = this.mf.hashCode();
@@ -265,15 +263,23 @@ public class JogampVersion {
         sb.append("Implementation Build: ").append(getImplementationBuild()).append(nl);
         sb.append("Implementation Branch: ").append(getImplementationBranch()).append(nl);
         sb.append("Implementation Commit: ").append(getImplementationCommit()).append(nl);
-        sb.append("Implementation SHA Sources: ").append(getImplementationSHASources()).append(nl);
-        sb.append("Implementation SHA Classes: ").append(getImplementationSHAClasses()).append(nl);
-        sb.append("Implementation SHA Classes-this: ").append(getImplementationSHAClassesThis()).append(nl);
-        sb.append("Implementation SHA Natives: ").append(getImplementationSHANatives()).append(nl);
-        sb.append("Implementation SHA Natives-this: ").append(getImplementationSHANativesThis()).append(nl);
-        if(null != getAndroidPackageVersionName()) {
-            sb.append("Android Package Version: ").append(getAndroidPackageVersionName()).append(nl);
-        }
+
+        addOptionalTag(sb, "Implementation SHA Sources", () -> { return getImplementationSHASources(); });
+        addOptionalTag(sb, "Implementation SHA Classes", () -> { return getImplementationSHAClasses(); });
+        addOptionalTag(sb, "Implementation SHA Classes-this", () -> { return getImplementationSHAClassesThis(); });
+        addOptionalTag(sb, "Implementation SHA Natives", () -> { return getImplementationSHANatives(); });
+        addOptionalTag(sb, "Implementation SHA Natives-this", () -> { return getImplementationSHANativesThis(); });
+        addOptionalTag(sb, "Android Package Version", () -> { return getAndroidPackageVersionName(); });
         return sb;
+    }
+    private static interface TagProvider {
+        public String get();
+    }
+    private static void addOptionalTag(final StringBuilder sb, final String title, final TagProvider tag) {
+        final String tagName = tag.get();
+        if( null != tagName ) {
+            sb.append(title+": ").append(tagName).append(Platform.getNewline());
+        }
     }
 
     public StringBuilder toString(StringBuilder sb) {

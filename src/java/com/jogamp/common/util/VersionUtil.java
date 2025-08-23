@@ -34,6 +34,7 @@ import com.jogamp.common.os.Platform;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Set;
@@ -99,12 +100,24 @@ public class VersionUtil {
         return getPlatformInfo(null).toString();
     }
 
+    /** Returns the manifest's Attributes.Name.EXTENSION_NAME, i.e. package-name. */
+    public static String getExtensionName(final Manifest mf) {
+        return getExtensionName(mf.getMainAttributes());
+    }
+    /** Returns the attributes' Attributes.Name.EXTENSION_NAME, i.e. package-name. */
+    public static String getExtensionName(final Attributes attributes) {
+        if(null != attributes) {
+            return attributes.getValue( Attributes.Name.EXTENSION_NAME );
+        }
+        return null;
+    }
+
     /**
      * Returns the manifest of the jar which contains the specified extension.
      * The provided ClassLoader is used for resource loading.
      * @param cl A ClassLoader which should find the manifest.
      * @param extension The value of the 'Extension-Name' jar-manifest attribute; used to identify the manifest.
-     * @return the requested manifest or null when not found.
+     * @return the requested manifest, or null if not matching or none found.
      */
     public static Manifest getManifest(final ClassLoader cl, final String extension) {
         return getManifest(cl, new String[] { extension } );
@@ -116,14 +129,29 @@ public class VersionUtil {
      * @param cl A ClassLoader which should find the manifest.
      * @param extensions The values of many 'Extension-Name's jar-manifest attribute; used to identify the manifest.
      *                   Matching is applied in decreasing order, i.e. first element is favored over the second, etc.
-     * @return the requested manifest or null when not found.
+     * @return the requested manifest, or null if not matching or none found.
      */
     public static Manifest getManifest(final ClassLoader cl, final String[] extensions) {
+        return getManifest(cl, extensions, false);
+    }
+
+    /**
+     * Returns the manifest of the jar which contains one of the specified extensions.
+     * The provided ClassLoader is used for resource loading.
+     * @param cl A ClassLoader which should find the manifest.
+     * @param extensions The values of many 'Extension-Name's jar-manifest attribute; used to identify the manifest.
+     *                   Matching is applied in decreasing order, i.e. first element is favored over the second, etc.
+     * @param acceptFirst pass true to accept the first Manifest w/ an extension-name if non matching extension is found
+     * @return the requested manifest, otherwise the first found manifest w/ an extension-name or null when no manifest found.
+     */
+    public static Manifest getManifest(final ClassLoader cl, final String[] extensions, final boolean acceptFirst) {
         final Manifest[] extManifests = new Manifest[extensions.length];
+        Manifest firstManifest = null;
         try {
             final Enumeration<URL> resources = cl.getResources("META-INF/MANIFEST.MF");
             while (resources.hasMoreElements()) {
-                final InputStream is = resources.nextElement().openStream();
+                final URL resource = resources.nextElement();
+                final InputStream is = resource.openStream();
                 final Manifest manifest;
                 try {
                     manifest = new Manifest(is);
@@ -131,10 +159,14 @@ public class VersionUtil {
                     IOUtil.close(is, false);
                 }
                 final Attributes attributes = manifest.getMainAttributes();
-                if(attributes != null) {
+                final String extensionName = getExtensionName(attributes);
+                if( null != extensionName && null != attributes) {
+                    if( null == firstManifest ) {
+                        firstManifest = manifest;
+                    }
                     for(int i=0; i < extensions.length && null == extManifests[i]; i++) {
                         final String extension = extensions[i];
-                        if( extension.equals( attributes.getValue( Attributes.Name.EXTENSION_NAME ) ) ) {
+                        if( extension.equals( extensionName ) ) {
                             if( 0 == i ) {
                                 return manifest; // 1st one has highest prio - done
                             }
@@ -148,8 +180,12 @@ public class VersionUtil {
         }
         for(int i=1; i<extManifests.length; i++) {
             if( null != extManifests[i] ) {
-                return extManifests[i];
+                final Manifest mf = extManifests[i];
+                return mf;
             }
+        }
+        if( acceptFirst && null != firstManifest ) {
+            return firstManifest;
         }
         return null;
     }
