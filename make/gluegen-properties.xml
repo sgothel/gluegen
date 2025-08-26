@@ -7,7 +7,7 @@
    - externally:
    - 
    -   gcc.compat.compiler
-   -       either "gcc" (default), "clang" or "xcode.clang" (default for OSX)
+   -       either "gcc" (default), "clang" (default for FreeBSD) or "xcode.clang" (default for OSX)
    -
    -   win32.c.compiler (required to be set on Windows):
    -       one of "vc6", "vc7", "vc8", "mingw32" (default) or "mingw64".
@@ -96,6 +96,12 @@
             <os family="mac"/>
             <os family="unix"/>
           </and>
+      </or>
+    </condition>
+    <condition property="gcc.compat.compiler" value="clang"> <!-- default for FreeBSD -->
+      <or>
+          <istrue value="${isFreeBSD}"/>
+          <os name="FreeBSD" />
       </or>
     </condition>
     <property name="gcc.compat.compiler" value="gcc"/>             <!-- default for all others .. -->

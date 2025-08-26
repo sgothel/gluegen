@@ -792,13 +792,21 @@ public class IOUtil {
               return ".sh";
         }
     }
-    private static String getExeTestShellCode() {
-        switch(PlatformPropsImpl.OS_TYPE) {
-            case WINDOWS:
-              return "echo off"+PlatformPropsImpl.NEWLINE;
-            default:
-              return "#!/bin/true"+PlatformPropsImpl.NEWLINE;
+    private static String getExeTestShellCodeUnix(final String test) {
+        if( testExeFile(new File(test)) ) {
+              return "#!"+test+PlatformPropsImpl.NEWLINE;
         }
+        return null;
+    }
+    private static String getExeTestShellCode() {
+        if( PlatformPropsImpl.OS_TYPE == Platform.OSType.WINDOWS ) {
+            return "echo off"+PlatformPropsImpl.NEWLINE;
+        }
+        final String res = getExeTestShellCodeUnix("/usr/bin/true");
+        if( null != res ) {
+            return res;
+        }
+        return getExeTestShellCodeUnix("/bin/true");
     }
     private static String getExeNativePath(final String canonicalPath) {
         switch(PlatformPropsImpl.OS_TYPE) {
@@ -931,6 +939,27 @@ public class IOUtil {
         if (shallBeWritable && !file.canWrite()) {
             if(DEBUG) {
                 System.err.println("IOUtil.testFile: <"+file.getAbsolutePath()+">: is not writable");
+            }
+            return false;
+        }
+        return true;
+    }
+    /**
+     * Test whether executable {@code file} exists, no OS executable tests performed, just permissions via Java
+     *
+     * @param file
+     * @return
+     */
+    public static boolean testExeFile(final File file) {
+        if (!file.exists()) {
+            if(DEBUG) {
+                System.err.println("IOUtil.testFile: <"+file.getAbsolutePath()+">: does not exist");
+            }
+            return false;
+        }
+        if (!file.canExecute()) {
+            if(DEBUG) {
+                System.err.println("IOUtil.testFile: <"+file.getAbsolutePath()+">: can't be executed");
             }
             return false;
         }

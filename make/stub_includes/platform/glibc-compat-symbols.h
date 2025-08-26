@@ -59,9 +59,13 @@
         #warning GLIBC_COMPAT_SYMBOL not supported with current compiler on GNU/Linux
         #define GLIBC_COMPAT_SYMBOL(FFF)
     #endif
+#elif defined(__FreeBSD__)
+    #define GLIBC_COMPAT_SYMBOL(FFF)
+    #define GLIBC_NOVERSION_SYMBOL(FFF)
 #else
     #warning GLIBC_COMPAT_SYMBOL not supported with target OS
     #define GLIBC_COMPAT_SYMBOL(FFF)
+    #define GLIBC_NOVERSION_SYMBOL(FFF)
 #endif
 
 // Build on Debian 12 hardlinked against GLIBC_2.34, e.g. `U dlsym@GLIBC_2.34`

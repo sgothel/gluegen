@@ -37,6 +37,18 @@ if [ -z "$FOUND_JAVA" ] ; then
     fi
 fi
 
+# FreeBSD
+if [ -z "$FOUND_JAVA" ] ; then
+    if [ -e /usr/local/java-21-openjdk-amd64 ] ; then
+        J2RE_HOME=/usr/local/openjdk21
+        JAVA_HOME=/usr/local/openjdk21
+        PATH=$JAVA_HOME/bin:$PATH
+        export J2RE_HOME JAVA_HOME
+        FOUND_JAVA=1
+    fi
+fi
+
+
 if [ -z "$FOUND_JAVA" ] ; then
     if [ -e /opt-linux-x86_64/jdk21/lib/libjava.so ] ; then
         J2RE_HOME=/opt-linux-x86_64/jdk21
