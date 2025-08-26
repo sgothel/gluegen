@@ -24,8 +24,7 @@ Jogamp 2.6.x runtime is supported on the described platforms below.
 Please ask for contracting options to
 have support added for your desired platform.
 
-## By JogAmp Version
-- [Version 2.6.0](https://jogamp.org/gluegen/doc/JogAmpPlatforms-2.6.0.html)
+Also see [root document](https://jogamp.org/gluegen/doc/JogAmpPlatforms.html) for all versions.
 
 ## Unit Testing
 Thorough unit testing is performed on all our [jenkins build nodes](https://jogamp.org/chuck/job/jogl/).

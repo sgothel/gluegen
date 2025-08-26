@@ -62,7 +62,8 @@ See [LICENSE.txt](LICENSE.txt).
 * [GlueGen Java™ API-Doc](https://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/)
 * [GlueGen Native Data & Function Mapping for Java™](https://jogamp.org/gluegen/doc/GlueGen_Mapping.html)
 * [GlueGen Manual](https://jogamp.org/gluegen/doc/manual/index.html)
-- [JogAmp's Supported Platforms](https://jogamp.org/gluegen/doc/JogAmpPlatforms.html)
+* [JogAmp's Supported Platforms](https://jogamp.org/gluegen/doc/JogAmpPlatforms.html)
+  - [Version 2.6.0](https://jogamp.org/gluegen/doc/JogAmpPlatforms-2.6.0.html)
 * [How To Build](https://jogamp.org/gluegen/doc/HowToBuild.html)
 
 ## Build Requirements
