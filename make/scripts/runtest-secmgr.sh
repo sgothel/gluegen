@@ -38,6 +38,14 @@ if [ -z "$ANT_PATH" ] ; then
         echo autosetting ANT_PATH to $ANT_PATH
     fi
 fi
+# FreeBSD
+if [ -z "$ANT_PATH" ] ; then
+    if [ -e /usr/local/bin/ant -a -e /usr/local/share/java/apache-ant/lib/ant.jar ] ; then
+        ANT_PATH=/usr/local/share/java/apache-ant
+        export ANT_PATH
+        echo autosetting ANT_PATH to $ANT_PATH
+    fi
+fi
 if [ -z "$ANT_PATH" ] ; then
     echo ANT_PATH does not exist, set it
     print_usage
