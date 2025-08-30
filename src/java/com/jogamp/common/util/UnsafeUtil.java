@@ -30,12 +30,10 @@ package com.jogamp.common.util;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.security.PrivilegedAction;
 
 import com.jogamp.common.ExceptionUtils;
-import com.jogamp.common.nio.Buffers;
 
 import jogamp.common.Debug;
 import jogamp.common.os.PlatformPropsImpl;
@@ -65,9 +63,6 @@ public class UnsafeUtil {
     private static final Method m_putLong; // putLong(Object o, long offset, long x)
 
     private static final Method m_staticFieldOffset;
-    private static final Method m_objectFieldOffset;
-
-    private static final Long addressFieldOffset;
 
     private static final Class<?> c_illegalAccessLoggerClass;
     private static final Long o_illegalAccessLoggerOffset;
@@ -77,11 +72,10 @@ public class UnsafeUtil {
     static {
         final Object[] _theUnsafe = { null };
         final Method[] _cleanBB = { null };
-        final Method[] _staticObjectFieldOffset = { null, null };
+        final Method[] _staticFieldOffset = { null };
         final Method[] _getPutObject = { null, null }; // getObject, putObject
         final Method[] _getPutObjectVolatile = { null, null }; // getObjectVolatile, putObjectVolatile
         final Method[] _getPutLong = { null, null }; // long getLong(Object o, long offset), putLong(Object o, long offset, long x)
-        final Long[]   _addressFieldOffset = { null };
         final Class<?>[] _illegalAccessLoggerClass = { null };
         final Long[] _loggerOffset = { null };
 
@@ -130,29 +124,17 @@ public class UnsafeUtil {
                         }
                     }
                     try {
-                        _staticObjectFieldOffset[0] = unsafeClass.getDeclaredMethod("staticFieldOffset", Field.class);
-                        _staticObjectFieldOffset[1] = unsafeClass.getDeclaredMethod("objectFieldOffset", Field.class);
+                        _staticFieldOffset[0] = unsafeClass.getDeclaredMethod("staticFieldOffset", Field.class);
                     } catch(final Throwable t) {
                         if( DEBUG ) {
                             ExceptionUtils.dumpThrowable("UnsafeUtil", t);
                         }
                     }
-                    if( null != _staticObjectFieldOffset[1] ) {
-                        try {
-
-                            final Field f = Buffer.class.getDeclaredField("address");
-                            _addressFieldOffset[0] = (Long)_staticObjectFieldOffset[1].invoke(_theUnsafe[0], f);
-                        } catch(final Throwable t) {
-                            if( DEBUG ) {
-                                ExceptionUtils.dumpThrowable("UnsafeUtil", t);
-                            }
-                        }
-                    }
-                    if( PlatformPropsImpl.JAVA_9 && null != _staticObjectFieldOffset[0] ) {
+                    if( PlatformPropsImpl.JAVA_9 && null != _staticFieldOffset[0] ) {
                         try {
                             _illegalAccessLoggerClass[0] = Class.forName("jdk.internal.module.IllegalAccessLogger");
                             final Field loggerField = _illegalAccessLoggerClass[0].getDeclaredField("logger");
-                            _loggerOffset[0] = (Long) _staticObjectFieldOffset[0].invoke(_theUnsafe[0], loggerField);
+                            _loggerOffset[0] = (Long) _staticFieldOffset[0].invoke(_theUnsafe[0], loggerField);
                         } catch(final Throwable t) {
                             if( DEBUG ) {
                                 ExceptionUtils.dumpThrowable("UnsafeUtil", t);
@@ -168,9 +150,7 @@ public class UnsafeUtil {
         if( DEBUG ) {
             System.err.println("UnsafeUtil.init: hasTheUnsafe: "+(null!=theUnsafe)+", hasInvokeCleaner: "+!hasUnsafeCleanBBError);
         }
-        m_staticFieldOffset = _staticObjectFieldOffset[0];
-        m_objectFieldOffset = _staticObjectFieldOffset[1];
-        addressFieldOffset = _addressFieldOffset[0];
+        m_staticFieldOffset = _staticFieldOffset[0];
         m_getObject = _getPutObject[0];
         m_putObject = _getPutObject[1];
         m_getObjectVolatile = _getPutObjectVolatile[0];
@@ -228,20 +208,6 @@ public class UnsafeUtil {
                 return res.longValue();
             }
             throw new RuntimeException("staticFieldOffset: f "+f);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException("UnsafeUtil");
-        }
-    }
-    public static long objectFieldOffset(final Field f) {
-        if( null != m_objectFieldOffset) {
-            throw new UnsupportedOperationException("objectFieldOffset");
-        }
-        try {
-            final Long res = (Long)m_objectFieldOffset.invoke(theUnsafe, f);
-            if( null != res ) {
-                return res.longValue();
-            }
-            throw new RuntimeException("objectFieldOffset: f "+f);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException("UnsafeUtil");
         }
@@ -320,16 +286,6 @@ public class UnsafeUtil {
     }
     public static void putLong(final long address, final long x) {
         putLong(null, address, x);
-    }
-
-    public static long getDirectBufferAddress(final Buffer buffer) {
-        if( null == buffer ) {
-            return 0;
-        }
-        if( null != addressFieldOffset || null != m_getLong ) {
-            return Buffers.getDirectBufferAddress(buffer);
-        }
-        return getLong(buffer, addressFieldOffset.longValue());
     }
 
     /**

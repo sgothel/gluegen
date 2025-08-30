@@ -28,14 +28,12 @@
 
 package com.jogamp.common.util;
 
-import java.nio.ByteBuffer;
 import java.security.PrivilegedAction;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Platform;
 import com.jogamp.junit.util.SingletonJunitCase;
 
@@ -62,14 +60,6 @@ public class TestUnsafeUtil extends SingletonJunitCase {
                     }
                 });
         Assert.assertEquals(Boolean.TRUE, res);
-    }
-
-    @Test
-    public void test01()  {
-        final ByteBuffer bb = Buffers.newDirectByteBuffer(100);
-        final long a0 = UnsafeUtil.getDirectBufferAddress(bb);
-        final long a1 = Buffers.getDirectBufferAddress(bb);
-        Assert.assertEquals(a0, a1);
     }
 
     public static void main(final String args[]) {
