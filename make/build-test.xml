@@ -307,7 +307,9 @@
 
     <target name="dump.localinfo">
         <echo message="Dump Local Info" />
-        <java fork="false" failonerror="no" classname="com.jogamp.common.util.TestSystemPropsAndEnvs" classpath="${junit.run.jars}"/>
+        <java fork="false" failonerror="no" classname="com.jogamp.common.util.TestSystemPropsAndEnvs" classpath="${junit.run.jars}">
+            <arg line="${jvmarg.generic}"/>
+        </java>
     </target>
 
     <target name="junit.run.remote.ssh" if="isCrosscompilation" unless="isAndroid">
@@ -460,6 +462,7 @@ chmod 644 ${results}/* \${line.separator}
             <jvmarg value="${junit.run.arg0}"/>
             <jvmarg value="${junit.run.arg1}"/>
             <jvmarg value="${jvmDataModel.arg}"/>
+            <jvmarg value="${jvmarg.generic}"/>
             <jvmarg value="-Djava.library.path=${gluegen.lib.abs}${path.separator}${build_t.lib.abs}"/>
             <jvmarg value="-Dgluegen.root=${gluegen.root}"/>
             <jvmarg value="-Drootrel.build=${rootrel.build}"/>

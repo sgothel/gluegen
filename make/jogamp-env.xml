@@ -84,6 +84,8 @@
             <equals arg1="${ant.java.version}" arg2="26"/>
             <equals arg1="${ant.java.version}" arg2="27"/>
             <equals arg1="${ant.java.version}" arg2="28"/>
+            <equals arg1="${ant.java.version}" arg2="29"/>
+            <equals arg1="${ant.java.version}" arg2="30"/>
         </or>
     </condition>
     <echo message="minJava21                  ${minJava21}"/>
@@ -161,6 +163,24 @@
   	<property name="target.targetlevel" value="8"/>
   	<property name="target.releaselevel" value="8"/>
   	<property name="target.buildlevel" value="11"/>
+
+    <!-- not required:     java.base/java.lang=ALL-UNNAMED -->
+    <!-- required for AWT: java.desktop/sun.awt=ALL-UNNAMED java.desktop/sun.awt.windows=ALL-UNNAMED java.desktop/sun.java2d=ALL-UNNAMED -->
+    <condition property="jvmarg.modules"  value="--enable-native-access=ALL-UNNAMED --add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.awt.windows=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED">
+        <isset property="minJava17"/>
+    </condition>
+    <condition property="jvmarg.modules"  value="--illegal-access=warn">
+        <and>
+            <isset property="minJava11"/>
+            <not>
+                <isset property="minJava17"/>
+            </not>
+        </and>
+    </condition>
+    <property name="jvmarg.modules"      value=""/> <!-- default is empty -->
+    <property name="jvmarg.generic"      value="${jvmarg.modules}"/>
+    <echo message="jvmarg.modules        ${jvmarg.modules}"/>
+    <echo message="jvmarg.generic        ${jvmarg.generic}"/>
 
     <property name="jogamp.jar.codebase"      value=""/> <!-- A jogamp build uses value "Codebase: *.jogamp.org" -->
     <echo message="jogamp.jar.codebase        ${jogamp.jar.codebase}"/>
