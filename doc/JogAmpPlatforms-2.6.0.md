@@ -38,7 +38,7 @@ and is performed on non Android platforms:
 #!/bin/sh
 
 type=archive/rc
-version=v2.6.0-rc-20250721
+version=v2.6.0
 folder=${type}/${version}
 
 mkdir ${version}
@@ -50,7 +50,7 @@ curl --silent --output jogl-fonts-p0.jar https://jogamp.org/deployment/${folder}
 
 echo "Fetched from ${folder} to ${version}"
 
-java -cp jogamp-fat.jar:jogl-demos.jar com.jogamp.opengl.demos.graph.ui.UISceneDemo20
+java -cp jogamp-fat.jar:jogl-demos.jar com.jogamp.opengl.demos.graph.ui.UISceneDemo03
 ```
 
 However, you can also use the locally produced fat jar file for the
@@ -58,7 +58,7 @@ building platform, e.g.
 
 ```
 cd jogl/build-x86_64/jar
-java -cp jogl-fat-linux-amd64.jar:jogl-demos.jar com.jogamp.opengl.demos.graph.ui.UISceneDemo20
+java -cp jogl-fat-linux-amd64.jar:jogl-demos.jar com.jogamp.opengl.demos.graph.ui.UISceneDemo03
 ```
 
 ### Android
@@ -71,7 +71,7 @@ Current runtime requirements
 
 - Java 8 (class file 52)
 - [OpenJDK](http://openjdk.java.net/) >= 8, tested on [Adoptium Builds](https://adoptium.net/temurin/releases/)
-  - OpenJDK 21
+  - OpenJDK 21 - 25
   - OpenJDK 17
   - OpenJDK 11
   - Following [OpenJDK](http://openjdk.java.net/) versions are no more tested, but may work
@@ -222,7 +222,7 @@ References
 | 11            | Big Sur      | 20             |                                            |
 | 12            | Monterey     | 21             | Build node 12.6.5, w/ Xcode 14.2, `x86_64` |
 | 13            | Ventura      | 22             | Test node 13.1, `arm64` (retired)          |
-| 15            | Sequoia      | 24             | Test node 15.5, `arm64`                    |
+| 15            | Sequoia      | 24             | Test node 15.6, `arm64`                    |
 
 Exceptions:
 - JOAL's build-in OpenAL-Soft requires MacOS 10.13
@@ -271,4 +271,4 @@ Currently not tested anymore, but should still work.
 | Date       | Note                                     |
 |:-----------|:-----------------------------------------|
 | 2023-05-06 | Initial Version for JogAmp Release 2.5.0 |
-| 2025-06-21 | JogAmp Release 2.6.0                     |
+| 2025-08-31 | JogAmp Release 2.6.0                     |

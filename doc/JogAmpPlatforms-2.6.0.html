@@ -502,7 +502,7 @@ platforms:</p>
 <pre><code>#!/bin/sh
 
 type=archive/rc
-version=v2.6.0-rc-20250721
+version=v2.6.0
 folder=${type}/${version}
 
 mkdir ${version}
@@ -514,11 +514,11 @@ curl --silent --output jogl-fonts-p0.jar https://jogamp.org/deployment/${folder}
 
 echo &quot;Fetched from ${folder} to ${version}&quot;
 
-java -cp jogamp-fat.jar:jogl-demos.jar com.jogamp.opengl.demos.graph.ui.UISceneDemo20</code></pre>
+java -cp jogamp-fat.jar:jogl-demos.jar com.jogamp.opengl.demos.graph.ui.UISceneDemo03</code></pre>
 <p>However, you can also use the locally produced fat jar file for the
 building platform, e.g.</p>
 <pre><code>cd jogl/build-x86_64/jar
-java -cp jogl-fat-linux-amd64.jar:jogl-demos.jar com.jogamp.opengl.demos.graph.ui.UISceneDemo20</code></pre>
+java -cp jogl-fat-linux-amd64.jar:jogl-demos.jar com.jogamp.opengl.demos.graph.ui.UISceneDemo03</code></pre>
 <h3 id="android">Android</h3>
 <p>For Android, the fat demo APK
 <code>jogl-demos-fat-android-${arch}.apk</code> inside the jogl build
@@ -531,7 +531,7 @@ mode enabled.</p>
 <li><a href="http://openjdk.java.net/">OpenJDK</a> &gt;= 8, tested on <a
 href="https://adoptium.net/temurin/releases/">Adoptium Builds</a>
 <ul>
-<li>OpenJDK 21</li>
+<li>OpenJDK 21 - 25</li>
 <li>OpenJDK 17</li>
 <li>OpenJDK 11</li>
 <li>Following <a href="http://openjdk.java.net/">OpenJDK</a> versions
@@ -767,7 +767,7 @@ Version Comparison Table (wiki)</a></li>
 <td style="text-align: left;">15</td>
 <td style="text-align: left;">Sequoia</td>
 <td style="text-align: left;">24</td>
-<td style="text-align: left;">Test node 15.5, <code>arm64</code></td>
+<td style="text-align: left;">Test node 15.6, <code>arm64</code></td>
 </tr>
 </tbody>
 </table>
@@ -839,7 +839,7 @@ Sierra), Darwin 17, <code>x86_64</code></h5>
 2.5.0</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2025-06-21</td>
+<td style="text-align: left;">2025-08-31</td>
 <td style="text-align: left;">JogAmp Release 2.6.0</td>
 </tr>
 </tbody>
