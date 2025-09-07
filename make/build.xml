@@ -1386,7 +1386,7 @@
         <!--delete includeEmptyDirs="true" quiet="true" failonerror="false">
             <fileset dir="${build}" includes="gluegen-java-src.zip" />
         </delete-->
-        <zip destfile="${build}/gluegen-java-src.zip" level="0">
+        <zip destfile="${build}/gluegen-java-src.zip">
             <fileset dir="${src.java}"/>
             <fileset dir="${build}/gensrc/java"/>
             <fileset dir="${src.jcpp}"/>
