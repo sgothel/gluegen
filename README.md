@@ -3,7 +3,7 @@
 [Original document location](https://jogamp.org/cgit/gluegen.git/about/)
 
 ## Git Repository
-This project's canonical repositories is hosted on [JogAmp](https://jogamp.org/cgit/gluegen.git/).
+This project's canonical repository is hosted on [JogAmp](https://jogamp.org/cgit/gluegen.git/).
 
 ## Overview
 [GlueGen](https://jogamp.org/gluegen/www/) is a compiler for function and data-structure declarations,
