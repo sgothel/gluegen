@@ -95,3 +95,4 @@ www/            JOAL project webpage files
 Since roughly 2010, GlueGen development has been continued
 by individuals of the JogAmp community, see git log for details.
 
+See also [JogAmp's History & Milestones](https://jogamp.org/cgit/jogl.git/about/#jogamp-history--milestones).
