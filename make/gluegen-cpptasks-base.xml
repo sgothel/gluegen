@@ -1252,6 +1252,7 @@
       <compilerarg value="-Wmost" />
       <compilerarg value="-ObjC" />
       <compilerarg value="-mmacosx-version-min=10.7"/>
+      <compilerarg value="-Wno-error=int-conversion"/>
       <!-- sysincludepath path="${macosx.sdkroot}" if="macosx.sdkroot"/ -->
       <defineset>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
