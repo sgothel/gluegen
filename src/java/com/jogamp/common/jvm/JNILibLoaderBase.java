@@ -47,7 +47,6 @@ import java.net.URL;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -622,26 +621,25 @@ public class JNILibLoaderBase {
                   }
                   final List<NativeLibrary.LibPath> possiblePaths = NativeLibrary.enumerateLibraryPaths(libraryName, libraryName, libraryName, cl);
                   // Iterate down these and see which one if any we can actually find.
-                  for (final Iterator<NativeLibrary.LibPath> iter = possiblePaths.iterator(); 0 == mode && iter.hasNext(); ) {
-                      final NativeLibrary.LibPath path = iter.next();
+                  for (NativeLibrary.LibPath path : possiblePaths) {
                       if (DEBUG) {
                           System.err.println("JNILibLoaderBase: System.load("+path+") - mode 4");
                       }
                       try {
                           System.load(path.path);
                           mode = 4;
+                          break;
                       } catch (final UnsatisfiedLinkError ex2) {
                           if(DEBUG) {
                               System.err.println("n/a - "+ex2.getMessage());
                           }
-                          if(!iter.hasNext()) {
-                              // Avoid misleading final exception, use our own
-                              throw new UnsatisfiedLinkError("Couldn't load library '"+libraryName+
-                                      "' generically including "+NativeLibrary.getSystemEnvLibraryPaths()+ // mode 3
-                                      ", nor as "+possiblePaths); // mode 4
-                          }
                       }
                   }
+                  if (mode == 0) { // Not loaded, avoid misleading final exception, use our own
+                      throw new UnsatisfiedLinkError("Couldn't load library '"+libraryName+
+                              "' generically including "+NativeLibrary.getSystemEnvLibraryPaths()+ // mode 3
+                              ", nor as "+possiblePaths); // mode 4
+                }
               }
           }
       }
