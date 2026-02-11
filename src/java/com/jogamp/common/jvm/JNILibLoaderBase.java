@@ -620,22 +620,23 @@ public class JNILibLoaderBase {
                       System.err.println("ERROR mode 3 - "+ex1.getMessage());
                   }
                   final List<NativeLibrary.LibPath> possiblePaths = NativeLibrary.enumerateLibraryPaths(libraryName, libraryName, libraryName, cl);
-                  // Iterate down these and see which one if any we can actually find.
-                  for (NativeLibrary.LibPath path : possiblePaths) {
+                  // Iterate down these and see which one if any we can actually find. possiblePaths maybe empty (-> throw)
+                  for (final Iterator<NativeLibrary.LibPath> iter = possiblePaths.iterator(); 0 == mode && iter.hasNext(); ) {
+                      final NativeLibrary.LibPath path = iter.next();
                       if (DEBUG) {
                           System.err.println("JNILibLoaderBase: System.load("+path+") - mode 4");
                       }
                       try {
                           System.load(path.path);
                           mode = 4;
-                          break;
                       } catch (final UnsatisfiedLinkError ex2) {
                           if(DEBUG) {
                               System.err.println("n/a - "+ex2.getMessage());
                           }
+                          // throw own exception only if none could be loaded
                       }
                   }
-                  if (mode == 0) { // Not loaded, avoid misleading final exception, use our own
+                  if (0 == mode) { // None loaded, throw
                       throw new UnsatisfiedLinkError("Couldn't load library '"+libraryName+
                               "' generically including "+NativeLibrary.getSystemEnvLibraryPaths()+ // mode 3
                               ", nor as "+possiblePaths); // mode 4
