@@ -41,12 +41,7 @@ public class Debug extends PropertyAccess {
   private static final boolean debugAll;
 
   static {
-    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-        @Override
-        public Object run() {
-            PropertyAccess.addTrustedPrefix("jogamp.");
-            return null;
-    } } );
+    PropertyAccess.addTrustedPrefix("jogamp.");
 
     verbose = isPropertyDefined("jogamp.verbose", true);
     debugAll = isPropertyDefined("jogamp.debug", true);

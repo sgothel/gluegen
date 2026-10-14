@@ -49,11 +49,9 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
-import java.security.PrivilegedAction;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.UnsafeUtil;
 import com.jogamp.common.util.ValueConv;
 
@@ -1993,31 +1991,32 @@ public class Buffers {
         static {
             final Method[] _mbbCleaner = { null };
             final Method[] _cClean = { null };
+            boolean ok = false;
             final boolean hasCleaner;
-            if( SecurityUtil.doPrivileged(new PrivilegedAction<Boolean>() {
-                @Override
-                public Boolean run() {
-                    try {
-                        if( PlatformPropsImpl.JAVA_9 ) {
-                            return UnsafeUtil.hasInvokeCleaner();
-                        } else {
-                            _mbbCleaner[0] = ReflectionUtil.getMethod("sun.nio.ch.DirectBuffer", "cleaner", null, Buffers.class.getClassLoader());
-                            _mbbCleaner[0].setAccessible(true);
-                            final Class<?> cleanerType = _mbbCleaner[0].getReturnType();
-                            // Java >= 9: jdk.internal.ref.Cleaner (NOT accessible!)
-                            //            "Unable to make public void jdk.internal.ref.Cleaner.clean() accessible:
-                            //             module java.base does not "exports jdk.internal.ref" to unnamed module"
-                            // Java <= 8: sun.misc.Cleaner OK
-                            _cClean[0] = cleanerType.getMethod("clean");
-                            _cClean[0].setAccessible(true);
-                            return Boolean.TRUE;
-                        }
-                    } catch(final Throwable t) {
-                        if( DEBUG ) {
-                            ExceptionUtils.dumpThrowable("Buffers", t);
-                        }
-                        return Boolean.FALSE;
-                    } } } ).booleanValue() ) {
+            {
+                try {
+                    if( PlatformPropsImpl.JAVA_9 ) {
+                        ok = UnsafeUtil.hasInvokeCleaner();
+                    } else {
+                        _mbbCleaner[0] = ReflectionUtil.getMethod("sun.nio.ch.DirectBuffer", "cleaner", null, Buffers.class.getClassLoader());
+                        _mbbCleaner[0].setAccessible(true);
+                        final Class<?> cleanerType = _mbbCleaner[0].getReturnType();
+                        // Java >= 9: jdk.internal.ref.Cleaner (NOT accessible!)
+                        //            "Unable to make public void jdk.internal.ref.Cleaner.clean() accessible:
+                        //             module java.base does not "exports jdk.internal.ref" to unnamed module"
+                        // Java <= 8: sun.misc.Cleaner OK
+                        _cClean[0] = cleanerType.getMethod("clean");
+                        _cClean[0].setAccessible(true);
+                        ok = true;
+                    }
+                } catch(final Throwable t) {
+                    if( DEBUG ) {
+                        ExceptionUtils.dumpThrowable("Buffers", t);
+                    }
+                    ok = false;
+                }
+            }
+            if (ok) {
                 mbbCleaner = _mbbCleaner[0];
                 cClean = _cClean[0];
                 hasCleaner = PlatformPropsImpl.JAVA_9 || ( null != mbbCleaner && null != cClean );

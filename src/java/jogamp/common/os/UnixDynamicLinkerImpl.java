@@ -51,7 +51,7 @@ package jogamp.common.os;
   protected static native java.lang.String dladdr_fname(long arg0);
 
   @Override
-  protected final String lookupLibraryPathnameImpl(final long libraryHandle, final String symbolName) throws SecurityException {
+  protected final String lookupLibraryPathnameImpl(final long libraryHandle, final String symbolName) {
       if( 0 != libraryHandle && null != symbolName && symbolName.length() > 0 ) {
           final long addr = dlsym(libraryHandle, symbolName);
           if( 0 != addr ) {
@@ -62,12 +62,12 @@ package jogamp.common.os;
   }
 
   @Override
-  protected final long lookupSymbolLocalImpl(final long libraryHandle, final String symbolName) throws SecurityException {
+  protected final long lookupSymbolLocalImpl(final long libraryHandle, final String symbolName) {
       return 0 != libraryHandle ? dlsym(libraryHandle, symbolName) : 0;
   }
 
   @Override
-  protected final void closeLibraryImpl(final long libraryHandle) throws SecurityException {
+  protected final void closeLibraryImpl(final long libraryHandle) {
       if( 0 != libraryHandle ) {
           dlclose(libraryHandle);
       }

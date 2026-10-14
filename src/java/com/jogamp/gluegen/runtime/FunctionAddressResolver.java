@@ -41,11 +41,7 @@ public interface FunctionAddressResolver {
 
     /**
      * Resolves the name of the function bound to the method and returns the address.
-     * <p>
-     * Implementation shall ensure {@link SecurityUtil#checkLinkPermission(String)} is performed.
-     * </p>
-     * @throws SecurityException if user is not granted access for the library set.
      */
-    public long resolve(String name, DynamicLookupHelper lookup) throws SecurityException;
+    public long resolve(String name, DynamicLookupHelper lookup);
 
 }

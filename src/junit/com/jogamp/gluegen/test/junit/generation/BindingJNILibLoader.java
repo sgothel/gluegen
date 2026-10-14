@@ -36,43 +36,19 @@ import java.security.*;
 public class BindingJNILibLoader extends JNILibLoaderBase {
 
     public static void loadBindingtest1p1() {
-        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                loadLibrary("Bindingtest1p1", null, true, BindingJNILibLoader.class.getClassLoader());
-                return null;
-            }
-        });
+        loadLibrary("Bindingtest1p1", null, true, BindingJNILibLoader.class.getClassLoader());
     }
 
     public static void loadBindingtest1p2() {
-        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                loadLibrary("Bindingtest1p2", null, true, BindingJNILibLoader.class.getClassLoader());
-                return null;
-            }
-        });
+        loadLibrary("Bindingtest1p2", null, true, BindingJNILibLoader.class.getClassLoader());
     }
 
     public static void loadBindingtest2p1() {
-        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                loadLibrary("Bindingtest2p1", null, true, BindingJNILibLoader.class.getClassLoader());
-                return null;
-            }
-        });
+        loadLibrary("Bindingtest2p1", null, true, BindingJNILibLoader.class.getClassLoader());
     }
 
     public static void loadBindingtest2p2() {
-        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                loadLibrary("Bindingtest2p2", null, true, BindingJNILibLoader.class.getClassLoader());
-                return null;
-            }
-        });
+        loadLibrary("Bindingtest2p2", null, true, BindingJNILibLoader.class.getClassLoader());
     }
 }
 

@@ -172,7 +172,7 @@ public class TestTempJarCache extends SingletonJunitCase {
     }
 
     @Test
-    public void testTempJarCache01LoadAllTestManifestAndClass() throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
+    public void testTempJarCache01LoadAllTestManifestAndClass() throws IOException, IllegalArgumentException, URISyntaxException {
         if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
 
         final ClassLoader cl = getClass().getClassLoader();

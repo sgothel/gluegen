@@ -3,11 +3,8 @@ package com.jogamp.common.net;
 import java.net.URL;
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
-import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.jogamp.common.util.SecurityUtil;
 
 public class GenericURLStreamHandlerFactory implements URLStreamHandlerFactory {
     private static GenericURLStreamHandlerFactory factory = null;
@@ -49,19 +46,15 @@ public class GenericURLStreamHandlerFactory implements URLStreamHandlerFactory {
      */
     public synchronized static GenericURLStreamHandlerFactory register() {
         if(null == factory) {
-            factory = SecurityUtil.doPrivileged(new PrivilegedAction<GenericURLStreamHandlerFactory>() {
-                @Override
-                public GenericURLStreamHandlerFactory run() {
-                    boolean ok = false;
-                    final GenericURLStreamHandlerFactory f = new GenericURLStreamHandlerFactory();
-                    try {
-                        URL.setURLStreamHandlerFactory(f);
-                        ok = true;
-                    } catch (final Throwable e) {
-                        System.err.println("GenericURLStreamHandlerFactory: Setting URLStreamHandlerFactory failed: "+e.getMessage());
-                    }
-                    return ok ? f : null;
-                } } );
+            boolean ok = false;
+            final GenericURLStreamHandlerFactory f = new GenericURLStreamHandlerFactory();
+            try {
+                URL.setURLStreamHandlerFactory(f);
+                ok = true;
+            } catch (final Throwable e) {
+                System.err.println("GenericURLStreamHandlerFactory: Setting URLStreamHandlerFactory failed: "+e.getMessage());
+            }
+            factory = ok ? f : null;
         }
         return factory;
     }

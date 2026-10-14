@@ -202,50 +202,47 @@ public abstract class PlatformPropsImpl {
             final ABIType[] _elfAbiType = { null };
             final int[] _elfLittleEndian = { 0 }; // 1 - little, 2 - big
             final boolean[] _elfValid = { false };
-            SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-                @Override
-                public Object run() {
-                    RandomAccessFile in = null;
-                    try {
-                        final File file = queryElfFile(OS_TYPE);
+            {
+                RandomAccessFile in = null;
+                try {
+                    final File file = queryElfFile(OS_TYPE);
+                    if(DEBUG) {
+                        System.err.println("ELF-1: Using "+file);
+                    }
+                    in = new RandomAccessFile(file, "r");
+                    final ElfHeaderPart1 eh1 = readElfHeaderPart1(OS_TYPE, in);
+                    if(DEBUG) {
+                        System.err.println("ELF-1: Got "+eh1);
+                    }
+                    if( null != eh1 ) {
+                        final ElfHeaderPart2 eh2 = readElfHeaderPart2(eh1, in);
                         if(DEBUG) {
-                            System.err.println("ELF-1: Using "+file);
+                            System.err.println("ELF-2: Got "+eh2);
                         }
-                        in = new RandomAccessFile(file, "r");
-                        final ElfHeaderPart1 eh1 = readElfHeaderPart1(OS_TYPE, in);
-                        if(DEBUG) {
-                            System.err.println("ELF-1: Got "+eh1);
-                        }
-                        if( null != eh1 ) {
-                            final ElfHeaderPart2 eh2 = readElfHeaderPart2(eh1, in);
-                            if(DEBUG) {
-                                System.err.println("ELF-2: Got "+eh2);
+                        if( null != eh2 ) {
+                            _elfCpuName[0] = eh2.cpuName;
+                            _elfCpuType[0] = eh2.cpuType;
+                            _elfAbiType[0] = eh2.abiType;
+                            if( eh1.isLittleEndian() ) {
+                                _elfLittleEndian[0] = 1;
+                            } else if( eh1.isBigEndian() ) {
+                                _elfLittleEndian[0] = 2;
                             }
-                            if( null != eh2 ) {
-                                _elfCpuName[0] = eh2.cpuName;
-                                _elfCpuType[0] = eh2.cpuType;
-                                _elfAbiType[0] = eh2.abiType;
-                                if( eh1.isLittleEndian() ) {
-                                    _elfLittleEndian[0] = 1;
-                                } else if( eh1.isBigEndian() ) {
-                                    _elfLittleEndian[0] = 2;
-                                }
-                                _elfValid[0] = true;
-                            }
-                        }
-                    } catch (final Throwable t) {
-                        if(DEBUG) {
-                            t.printStackTrace();
-                        }
-                    } finally {
-                        if(null != in) {
-                            try {
-                                in.close();
-                            } catch (final IOException e) { }
+                            _elfValid[0] = true;
                         }
                     }
-                    return null;
-                } });
+                } catch (final Throwable t) {
+                    if(DEBUG) {
+                        t.printStackTrace();
+                    }
+                } finally {
+                    if(null != in) {
+                        try {
+                            in.close();
+                        } catch (final IOException e) { }
+                    }
+                }
+            }
             elfCpuName = _elfCpuName[0];
             elfCpuType = _elfCpuType[0];
             elfABIType = _elfAbiType[0];
@@ -378,12 +375,7 @@ public abstract class PlatformPropsImpl {
 
     private static final String getJavaRuntimeNameImpl() {
         // the fast path, check property Java SE instead of traversing through the ClassLoader
-        return SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
-            @Override
-            public String run() {
-              return System.getProperty("java.runtime.name");
-            }
-          });
+        return System.getProperty("java.runtime.name");
     }
 
     private static final boolean initIsJavaSE() {

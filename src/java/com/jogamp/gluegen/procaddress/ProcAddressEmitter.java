@@ -319,7 +319,6 @@ public class ProcAddressEmitter extends JavaEmitter {
             tableJavaUnit.emitln("import " + imporT + ";");
         }
         tableJavaUnit.emitln("import " + ProcAddressTable.class.getName() + ";");
-        tableJavaUnit.emitln("import com.jogamp.common.util.SecurityUtil;");
         tableJavaUnit.emitln();
 
         tableJavaUnit.emitln("/**");

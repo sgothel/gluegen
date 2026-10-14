@@ -28,7 +28,6 @@
 
 package com.jogamp.common.util;
 
-import java.security.*;
 import java.util.HashSet;
 
 
@@ -57,10 +56,8 @@ public class PropertyAccess {
 
   /**
    * @param prefix New prefix to be registered as trusted.
-   * @throws AccessControlException as thrown by {@link SecurityUtil#checkAllPermissions()}.
    */
-  protected static final void addTrustedPrefix(final String prefix) throws AccessControlException {
-      SecurityUtil.checkAllPermissions();
+  protected static final void addTrustedPrefix(final String prefix) {
       trustedPrefixes.add(prefix);
   }
 
@@ -131,12 +128,11 @@ public class PropertyAccess {
    *
    * @throws NullPointerException if the property name is null
    * @throws IllegalArgumentException if the property name is of length 0
-   * @throws SecurityException if access is not allowed to the given <code>propertyKey</code>
    *
    * @see System#getProperty(String)
    */
   public static final String getProperty(final String propertyKey, final boolean jnlpAlias)
-      throws SecurityException, NullPointerException, IllegalArgumentException {
+      throws NullPointerException, IllegalArgumentException {
     if(null == propertyKey) {
         throw new NullPointerException("propertyKey is NULL");
     }
@@ -149,7 +145,7 @@ public class PropertyAccess {
         // 'trusted' property (jnlp., javaws., jogamp., ..)
         s = getTrustedPropKey(propertyKey);
     } else {
-        // may throw SecurityException, AccessControlerException
+        // may throw AccessControlerException
         s = System.getProperty(propertyKey);
     }
     if( null == s && jnlpAlias ) {
@@ -165,7 +161,7 @@ public class PropertyAccess {
 
   /** See {@link #getProperty(String, boolean)}, additionally allows a <code>defaultValue</code> if property value is <code>null</code>. */
   public static final String getProperty(final String propertyKey, final boolean jnlpAlias, final String defaultValue)
-      throws SecurityException, NullPointerException, IllegalArgumentException {
+      throws NullPointerException, IllegalArgumentException {
     final String s = PropertyAccess.getProperty(propertyKey, jnlpAlias);
     if( null != s ) {
         return s;
@@ -175,15 +171,6 @@ public class PropertyAccess {
   }
 
   private static final String getTrustedPropKey(final String propertyKey) {
-    return SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
-        @Override
-        public String run() {
-          try {
-              return System.getProperty(propertyKey);
-          } catch (final SecurityException se) {
-              throw new SecurityException("Could not access trusted property '"+propertyKey+"'", se);
-          }
-        }
-      });
+      return System.getProperty(propertyKey);
   }
 }

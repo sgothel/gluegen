@@ -33,7 +33,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
-import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -49,7 +48,6 @@ import jogamp.common.os.WindowsDynamicLinkerImpl;
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.IOUtil;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
 /**
@@ -276,59 +274,34 @@ public final class NativeLibrary implements DynamicLookupHelper {
    * Returns a system paths separated with {@link File#pathSeparator}, from the {@link #getSystemEnvLibraryPathVarname()} variable.
    */
   public static final String getSystemEnvLibraryPaths() {
-      return SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
-          @Override
-          public String run() {
-              return System.getenv(getSystemEnvLibraryPathVarname());
-          }
-      });
+      return System.getenv(getSystemEnvLibraryPathVarname());
   }
 
   /** Returns JogAmp's primary library path `jogamp.primary.library.path` separated with {@link File#pathSeparator}. */
   public static final String getJogAmpPrimaryLibraryPaths() {
-      return SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
-          @Override
-          public String run() {
-              return System.getProperty("jogamp.primary.library.path");
-          }
-      });
+      return System.getProperty("jogamp.primary.library.path");
   }
 
   /** Returns Java library system path `sun.boot.library.path` separated with {@link File#pathSeparator}. */
   private static final String getJavaLibrarySystemPaths() {
-      return SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
-          @Override
-          public String run() {
-            final String p = System.getProperty("sun.boot.library.path");
-            if(null != p && !p.isEmpty()) {
-                return p;
-            }
-            return null;
-          }
-        });
+      final String p = System.getProperty("sun.boot.library.path");
+      if (null != p && !p.isEmpty()) {
+          return p;
+      }
+      return null;
   }
   /** Returns Java library user path `java.library.path` separated with {@link File#pathSeparator}. */
   private static final String getJavaLibraryUserPaths() {
-      return SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
-          @Override
-          public String run() {
-            final String p = System.getProperty("java.library.path");
-            if(null != p && !p.isEmpty()) {
-                return p;
-            }
-            return null;
-          }
-        });
+      final String p = System.getProperty("java.library.path");
+      if (null != p && !p.isEmpty()) {
+          return p;
+      }
+      return null;
   }
 
   /** Returns Java library user path `user.dir` */
   private static final String getJavaCurrentWorkingDir() {
-      return SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
-          @Override
-          public String run() {
-              return System.getProperty("user.dir");
-          }
-      });
+      return System.getProperty("user.dir");
   }
 
   /** Opens the given native library, assuming it has the same base
@@ -349,13 +322,12 @@ public final class NativeLibrary implements DynamicLookupHelper {
    * @param loader {@link ClassLoader} to locate the library
    * @param global if {@code true} allows system wide access of the loaded library, otherwise access is restricted to the process.
    * @return {@link NativeLibrary} instance or {@code null} if library could not be loaded.
-   * @throws SecurityException if user is not granted access for the named library.
    * @since 2.4.0
    */
   public static final NativeLibrary open(final String libName,
                                          final boolean searchOSSystemPath,
                                          final boolean searchSystemPathFirst,
-                                         final ClassLoader loader, final boolean global) throws SecurityException {
+                                         final ClassLoader loader, final boolean global) {
     return open(libName, libName, libName, searchOSSystemPath, searchSystemPathFirst, loader, global, null);
   }
 
@@ -378,13 +350,12 @@ public final class NativeLibrary implements DynamicLookupHelper {
    * @param global if {@code true} allows system wide access of the loaded library, otherwise access is restricted to the process.
    * @param symbolName optional symbol name for an OS which requires the symbol's address to retrieve the path of the containing library
    * @return {@link NativeLibrary} instance or {@code null} if library could not be loaded.
-   * @throws SecurityException if user is not granted access for the named library.
    * @since 2.4.0
    */
   public static final NativeLibrary open(final String libName,
                                          final boolean searchOSSystemPath,
                                          final boolean searchSystemPathFirst,
-                                         final ClassLoader loader, final boolean global, final String symbolName) throws SecurityException {
+                                         final ClassLoader loader, final boolean global, final String symbolName) {
     return open(libName, libName, libName, searchOSSystemPath, searchSystemPathFirst, loader, global, symbolName);
   }
 
@@ -419,14 +390,13 @@ public final class NativeLibrary implements DynamicLookupHelper {
    * @param global if {@code true} allows system wide access of the loaded library, otherwise access is restricted to the process.
    * @param symbolName optional symbol name for an OS which requires the symbol's address to retrieve the path of the containing library
    * @return {@link NativeLibrary} instance or {@code null} if library could not be loaded.
-   * @throws SecurityException if user is not granted access for the named library.
    */
   public static final NativeLibrary open(final String windowsLibName,
                                          final String unixLibName,
                                          final String macOSXLibName,
                                          final boolean searchOSSystemPath,
                                          final boolean searchSystemPathFirst,
-                                         final ClassLoader loader, final boolean global, final String symbolName) throws SecurityException {
+                                         final ClassLoader loader, final boolean global, final String symbolName) {
     final List<LibPath> possiblePaths = enumerateLibraryPaths(windowsLibName,
                                                               unixLibName,
                                                               macOSXLibName,
@@ -482,16 +452,16 @@ public final class NativeLibrary implements DynamicLookupHelper {
   }
 
   @Override
-  public final void claimAllLinkPermission() throws SecurityException {
+  public final void claimAllLinkPermission() {
       dynLink.claimAllLinkPermission();
   }
   @Override
-  public final void releaseAllLinkPermission() throws SecurityException {
+  public final void releaseAllLinkPermission() {
       dynLink.releaseAllLinkPermission();
   }
 
   @Override
-  public final long dynamicLookupFunction(final String funcName) throws SecurityException {
+  public final long dynamicLookupFunction(final String funcName) {
     if ( 0 == libraryHandle ) {
       throw new RuntimeException("Library is not open");
     }
@@ -499,7 +469,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
   }
 
   @Override
-  public final boolean isFunctionAvailable(final String funcName) throws SecurityException {
+  public final boolean isFunctionAvailable(final String funcName) {
     if ( 0 == libraryHandle ) {
       throw new RuntimeException("Library is not open");
     }
@@ -507,9 +477,8 @@ public final class NativeLibrary implements DynamicLookupHelper {
   }
 
   /** Looks up the given function name in all loaded libraries.
-   * @throws SecurityException if user is not granted access for the named library.
    */
-  public final long dynamicLookupFunctionGlobal(final String funcName) throws SecurityException {
+  public final long dynamicLookupFunctionGlobal(final String funcName) {
     return dynLink.lookupSymbolGlobal(funcName);
   }
 
@@ -569,9 +538,8 @@ public final class NativeLibrary implements DynamicLookupHelper {
 
   /** Closes this native library. Further lookup operations are not
       allowed after calling this method.
-   * @throws SecurityException if user is not granted access for the named library.
    */
-  public final void close() throws SecurityException {
+  public final void close() {
     if (DEBUG) {
       System.err.println("NativeLibrary.close(): closing " + this);
     }
@@ -896,33 +864,18 @@ public final class NativeLibrary implements DynamicLookupHelper {
         return null;
     }
     if (!initializedFindLibraryMethod) {
-      SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-          @Override
-          public Object run() {
-            try {
-              findLibraryMethod = ClassLoader.class.getDeclaredMethod("findLibrary",
-                                                                      new Class[] { String.class });
-              findLibraryMethod.setAccessible(true);
-            } catch (final Exception e) {
-              // Fail silently disabling this functionality
-            }
-            initializedFindLibraryMethod = true;
-            return null;
-          }
-        });
+        try {
+            findLibraryMethod = ClassLoader.class.getDeclaredMethod(
+                    "findLibrary", new Class[] { String.class });
+            findLibraryMethod.setAccessible(true);
+        } catch (final Exception e) {
+            // Fail silently disabling this functionality
+        }
+        initializedFindLibraryMethod = true;
     }
     if (findLibraryMethod != null) {
       try {
-        return SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
-            @Override
-            public String run() {
-              try {
-                return (String) findLibraryMethod.invoke(loader, new Object[] { libName });
-              } catch (final Exception e) {
-                throw new RuntimeException(e);
-              }
-            }
-          });
+          return (String) findLibraryMethod.invoke(loader, new Object[] { libName });
       } catch (final Exception e) {
         if (DEBUG) {
           e.printStackTrace();

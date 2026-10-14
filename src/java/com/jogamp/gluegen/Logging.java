@@ -113,11 +113,11 @@ public class Logging {
         /**
          * See {@link Logger#setLevel(Level)}
          */
-        void setLevel(final Level newLevel) throws SecurityException;
+        void setLevel(final Level newLevel);
         /**
          * See {@link Handler#setLevel(Level)}
          */
-        void setLevelOfAllHandler(final Level newLevel) throws SecurityException;
+        void setLevelOfAllHandler(final Level newLevel);
         /**
          * See {@link Logger#getLevel()}
          */
@@ -230,11 +230,11 @@ public class Logging {
         }
 
         @Override
-        public void setLevel(final Level newLevel) throws SecurityException {
+        public void setLevel(final Level newLevel) {
             impl.setLevel(newLevel);
         }
         @Override
-        public void setLevelOfAllHandler(final Level newLevel) throws SecurityException {
+        public void setLevelOfAllHandler(final Level newLevel) {
             final Handler[] hs = getHandlers();
             for(final Handler h:hs) {
                 h.setLevel(newLevel);

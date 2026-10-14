@@ -52,9 +52,6 @@ public interface DynamicLibraryBundleInfo {
     public boolean searchToolLibSystemPathFirst();
 
     /**
-     * If a {@link SecurityManager} is installed, user needs link permissions
-     * for the named libraries.
-     *
      * @return a list of Tool library names or alternative library name lists.<br>
      * <ul>
      * <li>GL/GLU example Unix:   [ [ "libGL.so.1", "libGL.so", "GL" ], [ "libGLU.so", "GLU" ] ] </li>
@@ -70,9 +67,6 @@ public interface DynamicLibraryBundleInfo {
     public List<String> getSymbolForToolLibPath();
 
     /**
-     * If a {@link SecurityManager} is installed, user needs link permissions
-     * for the named libraries.
-     *
      * @return a list of Glue library names.<br>
      * <ul>
      * <li>GL:   [ "nativewindow_x11", "jogl_gl2es12", "jogl_desktop" ] </li>
@@ -111,9 +105,6 @@ public interface DynamicLibraryBundleInfo {
     public boolean shallLinkGlobal();
 
     /**
-     * If method returns <code>true</code> <i>and</i> if a {@link SecurityManager} is installed, user needs link permissions
-     * for <b>all</b> libraries, i.e. for <code>new RuntimePermission("loadLibrary.*");</code>!
-     *
      * @return true if the dynamic symbol lookup shall happen system wide, over all loaded libraries.
      * Otherwise only the loaded native libraries are used for lookup, which shall be the default.
      */

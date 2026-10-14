@@ -50,27 +50,19 @@ public interface DynamicLookupHelper {
   public static final boolean DEBUG = Debug.debug("NativeLibrary");
   public static final boolean DEBUG_LOOKUP = Debug.debug("NativeLibrary.Lookup");
 
-  /**
-   * @throws SecurityException if user is not granted access for the library set.
-   */
-  public void claimAllLinkPermission() throws SecurityException;
-  /**
-   * @throws SecurityException if user is not granted access for the library set.
-   */
-  public void releaseAllLinkPermission() throws SecurityException;
+  public void claimAllLinkPermission();
+  public void releaseAllLinkPermission();
 
   /** Returns true if library is loaded and open, otherwise false. */
   public boolean isOpen();
 
   /**
    * Returns the function handle for function 'funcName'.
-   * @throws SecurityException if user is not granted access for the library set.
    */
-  public long dynamicLookupFunction(String funcName) throws SecurityException;
+  public long dynamicLookupFunction(String funcName);
 
   /**
    * Queries whether function 'funcName' is available.
-   * @throws SecurityException if user is not granted access for the library set.
    */
-  public boolean isFunctionAvailable(String funcName) throws SecurityException;
+  public boolean isFunctionAvailable(String funcName);
 }

@@ -44,7 +44,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -55,7 +54,6 @@ import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.PropertyAccess;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
 import jogamp.common.Debug;
@@ -171,12 +169,11 @@ public class JNILibLoaderBase {
    * @param nativeJarBasename native jar basename w/ suffix
    * @return
    * @throws IOException
-   * @throws SecurityException
    * @throws URISyntaxException
    */
   private static final boolean addNativeJarLibsImpl(final Class<?> classFromJavaJar, final Uri classJarUri,
                                                     final Uri.Encoded jarBasename, final Uri.Encoded nativeJarBasename)
-    throws IOException, SecurityException, URISyntaxException
+    throws IOException, URISyntaxException
   {
     if (DEBUG) {
         final StringBuilder msg = new StringBuilder();
@@ -515,61 +512,23 @@ public class JNILibLoaderBase {
   private static final Method customLoadLibraryMethod;
 
   static {
-    final String sunAppletLauncherProperty = "sun.jnlp.applet.launcher";
-    final String sunAppletLauncherClassName = "org.jdesktop.applet.util.JNLPAppletLauncher";
-
-    final Method loadLibraryMethod = SecurityUtil.doPrivileged(new PrivilegedAction<Method>() {
-        @Override
-        public Method run() {
-            // FIXME: remove
-            final boolean usingJNLPAppletLauncher = PropertyAccess.getBooleanProperty(sunAppletLauncherProperty, true);
-
-            Class<?> launcherClass = null;
-            Method loadLibraryMethod = null;
-
-            if (usingJNLPAppletLauncher) {
-                try {
-                  launcherClass = Class.forName(sunAppletLauncherClassName);
-                } catch (final ClassNotFoundException cnfe) {
-                  // oops .. look like JNLPAppletLauncher doesn't exist, despite property
-                  // this may happen if a previous applet was using JNLPAppletLauncher in the same JVM
-                  System.err.println("JNILibLoaderBase: <"+sunAppletLauncherClassName+"> not found, despite enabled property <"+sunAppletLauncherProperty+">, JNLPAppletLauncher was probably used before");
-                  System.setProperty(sunAppletLauncherProperty, Boolean.FALSE.toString());
-                } catch (final LinkageError le) {
-                    throw le;
+      Method loadLibraryMethod = null;
+        final String launcherClassName = PropertyAccess.getProperty("jnlp.launcher.class", false);
+        if(null!=launcherClassName) {
+            try {
+                final Class<?> launcherClass = Class.forName(launcherClassName);
+                loadLibraryMethod = launcherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
+            } catch (final ClassNotFoundException ex) {
+                if(DEBUG) {
+                    ex.printStackTrace();
                 }
-                if(null != launcherClass) {
-                   try {
-                      loadLibraryMethod = launcherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
-                   } catch (final NoSuchMethodException ex) {
-                        if(DEBUG) {
-                            ex.printStackTrace();
-                        }
-                        launcherClass = null;
-                   }
+            } catch (final NoSuchMethodException ex) {
+                if(DEBUG) {
+                    ex.printStackTrace();
                 }
             }
-            if(null==launcherClass) {
-                final String launcherClassName = PropertyAccess.getProperty("jnlp.launcher.class", false);
-                if(null!=launcherClassName) {
-                    try {
-                        launcherClass = Class.forName(launcherClassName);
-                        loadLibraryMethod = launcherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
-                    } catch (final ClassNotFoundException ex) {
-                        if(DEBUG) {
-                            ex.printStackTrace();
-                        }
-                    } catch (final NoSuchMethodException ex) {
-                        if(DEBUG) {
-                            ex.printStackTrace();
-                        }
-                        launcherClass = null;
-                    }
-                }
-            }
-            return loadLibraryMethod;
-        } } );
-    customLoadLibraryMethod = loadLibraryMethod;
+        }
+        customLoadLibraryMethod = loadLibraryMethod;
   }
 
   private static void loadLibraryInternal(final String libraryName, final ClassLoader cl) {

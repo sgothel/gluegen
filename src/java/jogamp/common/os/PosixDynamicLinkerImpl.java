@@ -40,17 +40,17 @@ public final class PosixDynamicLinkerImpl extends UnixDynamicLinkerImpl {
   private static final int RTLD_GLOBAL   = 0x00100;
 
   @Override
-  protected final long openLibraryLocalImpl(final LibPath libpath) throws SecurityException {
+  protected final long openLibraryLocalImpl(final LibPath libpath) {
     return dlopen(libpath.path, RTLD_LAZY | RTLD_LOCAL);
   }
 
   @Override
-  protected final long openLibraryGlobalImpl(final LibPath libpath) throws SecurityException {
+  protected final long openLibraryGlobalImpl(final LibPath libpath) {
     return dlopen(libpath.path, RTLD_LAZY | RTLD_GLOBAL);
   }
 
   @Override
-  protected final long lookupSymbolGlobalImpl(final String symbolName) throws SecurityException {
+  protected final long lookupSymbolGlobalImpl(final String symbolName) {
     return dlsym(RTLD_DEFAULT, symbolName);
   }
 }

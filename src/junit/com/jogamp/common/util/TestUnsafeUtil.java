@@ -28,8 +28,6 @@
 
 package com.jogamp.common.util;
 
-import java.security.PrivilegedAction;
-
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -53,9 +51,9 @@ public class TestUnsafeUtil extends SingletonJunitCase {
         if( ! UnsafeUtil.hasIllegalAccessLoggerAccess() ) {
             return;
         }
-        final Boolean res = UnsafeUtil.doWithoutIllegalAccessLogger(new PrivilegedAction<Boolean>() {
+        final Boolean res = UnsafeUtil.doWithoutIllegalAccessLogger(new Function0<Boolean>() {
                     @Override
-                    public Boolean run() {
+                    public Boolean eval() {
                         return Boolean.TRUE;
                     }
                 });

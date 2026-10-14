@@ -76,30 +76,24 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
 
     static class EntryCM { EntryCM() { c = null; m1 = null; } Constructor<Entry> c; Method m1; }
 
+    @SuppressWarnings("unchecked")
+    private static Constructor<Entry> getCtor(final Class<?> valueClazz) {
+        final Class<?> keyClazz = /*key*/int/*key*/.class;
+        return (Constructor<Entry>) ReflectionUtil.getConstructor(Entry.class,
+                    new Class[] { keyClazz, valueClazz, Entry.class } );
+    }
+
     static {
         final Class<?> valueClazz = /*value*/int/*value*/.class;
-        final Class<?> keyClazz = /*key*/int/*key*/.class;
-
         isPrimitive = valueClazz.isPrimitive();
 
         if(!isPrimitive) {
-            final EntryCM cm = SecurityUtil.doPrivileged(new PrivilegedAction<EntryCM>() {
-                @Override
-                @SuppressWarnings("unchecked")
-                public EntryCM run() {
-                    final EntryCM r = new EntryCM();
-                    r.c = (Constructor<Entry>)
-                            ReflectionUtil.getConstructor(Entry.class,
-                                                          new Class[] { keyClazz, valueClazz, Entry.class } );
-                    try {
-                        r.m1 = valueClazz.getDeclaredMethod("equals", Object.class);
-                    } catch (final NoSuchMethodException ex) {
-                        throw new JogampRuntimeException("Class "+valueClazz+" doesn't support equals(Object)");
-                    }
-                    return r;
-                } } );
-            entryConstructor = cm.c;
-            equalsMethod = cm.m1;
+            entryConstructor = getCtor(valueClazz);
+            try {
+                equalsMethod = valueClazz.getDeclaredMethod("equals", Object.class);
+            } catch (final NoSuchMethodException ex) {
+                throw new JogampRuntimeException("Class "+valueClazz+" doesn't support equals(Object)");
+            }
         } else {
             entryConstructor = null;
             equalsMethod = null;
@@ -501,14 +495,10 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
 
     private static Method getCloneMethod(final Object obj) {
         final Class<?> clazz = obj.getClass();
-        return SecurityUtil.doPrivileged(new PrivilegedAction<Method>() {
-                @Override
-                public Method run() {
-                    try {
-                        return clazz.getDeclaredMethod("clone");
-                    } catch (final NoSuchMethodException ex) {
-                        throw new JogampRuntimeException("Class "+clazz+" doesn't support clone()", ex);
-                    }
-                } } );
+        try {
+            return clazz.getDeclaredMethod("clone");
+        } catch (final NoSuchMethodException ex) {
+            throw new JogampRuntimeException("Class "+clazz+" doesn't support clone()", ex);
+        }
     }
 }

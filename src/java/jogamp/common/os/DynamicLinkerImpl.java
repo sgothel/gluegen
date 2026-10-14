@@ -30,7 +30,6 @@ package jogamp.common.os;
 import com.jogamp.common.os.DynamicLinker;
 import com.jogamp.common.os.NativeLibrary.LibPath;
 import com.jogamp.common.util.LongObjectHashMap;
-import com.jogamp.common.util.SecurityUtil;
 
 /* pp */ abstract class DynamicLinkerImpl implements DynamicLinker {
 
@@ -44,54 +43,53 @@ import com.jogamp.common.util.SecurityUtil;
   private boolean allLinkPermissionGranted = false;
 
   /**
-   * @throws SecurityException if user is not granted global access
+   * @if user is not granted global access
    */
   @Override
-  public final void claimAllLinkPermission() throws SecurityException {
+  public final void claimAllLinkPermission() {
       synchronized( secSync ) {
           allLinkPermissionGranted = true;
       }
   }
 
   /**
-   * @throws SecurityException if user is not granted global access
+   * @if user is not granted global access
    */
   @Override
-  public final void releaseAllLinkPermission() throws SecurityException {
+  public final void releaseAllLinkPermission() {
       synchronized( secSync ) {
           allLinkPermissionGranted = false;
       }
   }
 
-  private final void checkLinkPermission(final String pathname) throws SecurityException {
+  private final void checkLinkPermission(final String pathname) {
       synchronized( secSync ) {
           if( !allLinkPermissionGranted ) {
-              SecurityUtil.checkLinkPermission(pathname);
+              // NOP
           }
       }
   }
-  private final void checkLinkPermission(final long libraryHandle) throws SecurityException {
+  private final void checkLinkPermission(final long libraryHandle) {
       synchronized( secSync ) {
           if( !allLinkPermissionGranted ) {
               final LibRef libRef = getLibRef( libraryHandle );
               if( null == libRef ) {
                   throw new IllegalArgumentException("Library handle 0x"+Long.toHexString(libraryHandle)+" unknown.");
               }
-              SecurityUtil.checkLinkPermission(libRef.getLibPath().path);
           }
       }
   }
 
-  private final void checkAllLinkPermission() throws SecurityException {
+  private final void checkAllLinkPermission() {
       synchronized( secSync ) {
           if( !allLinkPermissionGranted ) {
-              SecurityUtil.checkAllLinkPermission();
+              // NOP
           }
       }
   }
 
   @Override
-  public long openLibraryGlobal(final LibPath libpath, final boolean debug) throws SecurityException {
+  public long openLibraryGlobal(final LibPath libpath, final boolean debug) {
     checkLinkPermission(libpath.path);
     final long handle = openLibraryGlobalImpl(libpath);
     if( 0 != handle ) {
@@ -104,10 +102,10 @@ import com.jogamp.common.util.SecurityUtil;
     }
     return handle;
   }
-  protected abstract long openLibraryGlobalImpl(final LibPath libpath) throws SecurityException;
+  protected abstract long openLibraryGlobalImpl(final LibPath libpath);
 
   @Override
-  public final long openLibraryLocal(final LibPath libpath, final boolean debug) throws SecurityException {
+  public final long openLibraryLocal(final LibPath libpath, final boolean debug) {
     checkLinkPermission(libpath.path);
     final long handle = openLibraryLocalImpl(libpath);
     if( 0 != handle ) {
@@ -120,10 +118,10 @@ import com.jogamp.common.util.SecurityUtil;
     }
     return handle;
   }
-  protected abstract long openLibraryLocalImpl(final LibPath libpath) throws SecurityException;
+  protected abstract long openLibraryLocalImpl(final LibPath libpath);
 
   @Override
-  public final String lookupLibraryPathname(final long libraryHandle, final String symbolName) throws SecurityException {
+  public final String lookupLibraryPathname(final long libraryHandle, final String symbolName) {
     checkLinkPermission(libraryHandle);
     final String fname = lookupLibraryPathnameImpl(libraryHandle, symbolName);
     if(DEBUG_LOOKUP) {
@@ -131,10 +129,10 @@ import com.jogamp.common.util.SecurityUtil;
     }
     return fname;
   }
-  protected abstract String lookupLibraryPathnameImpl(final long libraryHandle, String symbolName) throws SecurityException;
+  protected abstract String lookupLibraryPathnameImpl(final long libraryHandle, String symbolName);
 
   @Override
-  public final long lookupSymbolGlobal(final String symbolName) throws SecurityException {
+  public final long lookupSymbolGlobal(final String symbolName) {
     checkAllLinkPermission();
     final long addr = lookupSymbolGlobalImpl(symbolName);
     if(DEBUG_LOOKUP) {
@@ -142,10 +140,10 @@ import com.jogamp.common.util.SecurityUtil;
     }
     return addr;
   }
-  protected abstract long lookupSymbolGlobalImpl(final String symbolName) throws SecurityException;
+  protected abstract long lookupSymbolGlobalImpl(final String symbolName);
 
   @Override
-  public final long lookupSymbol(final long libraryHandle, final String symbolName) throws SecurityException, IllegalArgumentException {
+  public final long lookupSymbol(final long libraryHandle, final String symbolName) throws IllegalArgumentException {
     checkLinkPermission(libraryHandle);
     final long addr = lookupSymbolLocalImpl(libraryHandle, symbolName);
     if(DEBUG_LOOKUP) {
@@ -153,10 +151,10 @@ import com.jogamp.common.util.SecurityUtil;
     }
     return addr;
   }
-  protected abstract long lookupSymbolLocalImpl(final long libraryHandle, final String symbolName) throws SecurityException;
+  protected abstract long lookupSymbolLocalImpl(final long libraryHandle, final String symbolName);
 
   @Override
-  public final void closeLibrary(final long libraryHandle, final boolean debug) throws SecurityException, IllegalArgumentException {
+  public final void closeLibrary(final long libraryHandle, final boolean debug) throws IllegalArgumentException {
     final LibRef libRef = decrLibRefCount( libraryHandle );
     if( null != libRef ) {
         checkLinkPermission(libRef.getLibPath().path);
@@ -168,7 +166,7 @@ import com.jogamp.common.util.SecurityUtil;
         closeLibraryImpl(libraryHandle);
     }
   }
-  protected abstract void closeLibraryImpl(final long libraryHandle) throws SecurityException;
+  protected abstract void closeLibraryImpl(final long libraryHandle);
 
   private static final LongObjectHashMap libHandle2Name = new LongObjectHashMap( 16 /* initialCapacity */ );
 

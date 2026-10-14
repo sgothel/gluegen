@@ -51,45 +51,23 @@ public class TestSecIOUtil01 extends SingletonJunitCase {
     static final String java_io_tmpdir_propkey = "java.io.tmpdir";
     static final String java_home_propkey = "java.home";
     static final String os_name_propkey = "os.name";
-    static final boolean usesSecurityManager;
-
-    static {
-        if( null == System.getSecurityManager() ) {
-            usesSecurityManager = false;
-            System.err.println("No SecurityManager Installed");
-        } else {
-            usesSecurityManager = true;
-            System.err.println("SecurityManager Already Installed");
-        }
-    }
 
     @BeforeClass
     public static void setup() throws IOException {
         Platform.initSingleton();
     }
 
-    static void testPropImpl01(final String propKey, boolean isSecure) {
-        isSecure |= !usesSecurityManager;
-
+    static void testPropImpl01(final String propKey, final boolean isSecure) {
         Exception se0 = null;
         try {
             final String p0 = System.getProperty(propKey);
             System.err.println(propKey+": "+p0);
         } catch (final AccessControlException e) {
             se0 = e;
-            if( !isSecure ) {
-                System.err.println("Expected exception for insecure property <"+propKey+">");
-                System.err.println("Message: "+se0.getMessage());
-            } else {
-                System.err.println("Unexpected exception for secure property <"+propKey+">");
-                se0.printStackTrace();
-            }
+            System.err.println("Expected exception for property (secure "+isSecure+") <"+propKey+">");
+            System.err.println("Message: "+se0.getMessage());
         }
-        if( isSecure ) {
-            Assert.assertNull("AccessControlException thrown on secure property <"+propKey+">", se0);
-        } else {
-            Assert.assertNotNull("AccessControlException not thrown on insecure property <"+propKey+">", se0);
-        }
+        Assert.assertNull("Unexpected exception thrown on (secure "+isSecure+") property <"+propKey+">", se0);
     }
 
     @Test
@@ -107,39 +85,23 @@ public class TestSecIOUtil01 extends SingletonJunitCase {
         testPropImpl01(java_io_tmpdir_propkey, false);
     }
 
-    static void testTempDirImpl(boolean isSecure) {
-        isSecure |= !usesSecurityManager;
-
+    static void testTempDirImpl(final boolean isSecure) {
         Exception se0 = null;
         try {
             final File tmp = IOUtil.getTempDir(true);
             System.err.println("Temp: "+tmp);
         } catch (final AccessControlException e) {
             se0 = e;
-            if( !isSecure ) {
-                System.err.println("Expected exception for insecure temp dir");
-                System.err.println("Message: "+se0.getMessage());
-            } else {
-                System.err.println("Unexpected exception for secure temp dir");
-                se0.printStackTrace();
-            }
-        } catch (final SecurityException e) {
-            se0 = e;
-            if( !isSecure ) {
-                System.err.println("Expected exception for insecure temp dir (2)");
-                System.err.println("Message: "+se0.getMessage());
-            } else {
-                System.err.println("Unexpected exception for secure temp dir (2)");
-                se0.printStackTrace();
-            }
+            System.err.println("Expected exception for insecure temp dir");
+            System.err.println("Message: "+se0.getMessage());
         } catch (final IOException e) {
             throw new RuntimeException(e); // oops
+        } catch (final Exception e) {
+            se0 = e;
+            System.err.println("Unexpected exception for (secure "+isSecure+") temp dir (2)");
+            se0.printStackTrace();
         }
-        if( isSecure ) {
-            Assert.assertNull("AccessControlException thrown on secure temp dir", se0);
-        } else {
-            Assert.assertNotNull("AccessControlException not thrown on insecure temp dir", se0);
-        }
+        Assert.assertNull("Unexpected exception thrown on (secure "+isSecure+") temp dir", se0);
     }
 
     @Test
@@ -185,21 +147,12 @@ public class TestSecIOUtil01 extends SingletonJunitCase {
             try {
                 nlib = NativeLibrary.open(absLib.toFile().getPath(), true, true, cl, true);
                 System.err.println("NativeLibrary: "+nlib);
-            } catch (final SecurityException e) {
+            } catch (final Exception e) {
                 se0 = e;
-                if( usesSecurityManager ) {
-                    System.err.println("Expected exception for loading native library");
-                    System.err.println("Message: "+se0.getMessage());
-                } else {
-                    System.err.println("Unexpected exception for loading native library");
-                    se0.printStackTrace();
-                }
+                System.err.println("Unexpected exception for loading native library");
+                se0.printStackTrace();
             }
-            if( !usesSecurityManager ) {
-                Assert.assertNull("SecurityException thrown on loading native library", se0);
-            } else {
-                Assert.assertNotNull("SecurityException not thrown on loading native library", se0);
-            }
+            Assert.assertNull("Exception thrown on loading native library", se0);
             return nlib;
         } else {
             System.err.println("No library found");

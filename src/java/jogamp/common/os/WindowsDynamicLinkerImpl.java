@@ -85,17 +85,17 @@ public final class WindowsDynamicLinkerImpl extends DynamicLinkerImpl {
   private static native java.lang.String GetModuleFileNameA(long hModule);
 
   @Override
-  protected final long openLibraryLocalImpl(final LibPath libpath) throws SecurityException {
+  protected final long openLibraryLocalImpl(final LibPath libpath) {
     // How does that work under Windows ?
     // Don't know .. so it's an alias to global, for the time being
     return openLibraryImpl(libpath);
   }
   @Override
-  protected final long openLibraryGlobalImpl(final LibPath libpath) throws SecurityException {
+  protected final long openLibraryGlobalImpl(final LibPath libpath) {
     return openLibraryImpl(libpath);
   }
   private static final boolean TRACE = false;
-  private final long openLibraryImpl(final LibPath libpath) throws SecurityException {
+  private final long openLibraryImpl(final LibPath libpath) {
     if( TRACE ) {
         System.err.println("openLibraryImpl: "+libpath);
     }
@@ -131,13 +131,13 @@ public final class WindowsDynamicLinkerImpl extends DynamicLinkerImpl {
   }
 
   @Override
-  protected final String lookupLibraryPathnameImpl(final long libraryHandle, final String symbolName) throws SecurityException {
+  protected final String lookupLibraryPathnameImpl(final long libraryHandle, final String symbolName) {
       // symbolName is not required
       return 0 != libraryHandle ? GetModuleFileNameA(libraryHandle) : null;
   }
 
   @Override
-  protected final long lookupSymbolGlobalImpl(final String symbolName) throws SecurityException {
+  protected final long lookupSymbolGlobalImpl(final String symbolName) {
     if(DEBUG_LOOKUP) {
         System.err.println("lookupSymbolGlobal: Not supported on Windows");
     }

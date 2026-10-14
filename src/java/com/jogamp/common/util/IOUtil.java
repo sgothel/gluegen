@@ -33,7 +33,6 @@ import java.io.BufferedOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FilePermission;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,7 +47,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -78,49 +76,41 @@ public class IOUtil {
 
     static {
         final boolean _props[] = { false, false, false, false, false, false };
-        final Method[] res = SecurityUtil.doPrivileged(new PrivilegedAction<Method[]>() {
-            @Override
-            public Method[] run() {
-                final Method[] res = new Method[] { null, null };
-                try {
-                    int i=0;
-                    _props[i++] = Debug.debug("IOUtil");
-                    _props[i++] = PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe", true);
-                    _props[i++] =  PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe.NoStream", true);
-                    // For security reasons, we have to hardcode this, i.e. disable this manual debug feature!
-                    _props[i++] = false; // PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe.ExistingFile", true);
-                    _props[i++] = PropertyAccess.getBooleanProperty("jogamp.gluegen.TestTempDirExec", true, true);
-                    _props[i++] = PropertyAccess.getBooleanProperty("jogamp.gluegen.UseNativeExeFile", true, false);
-
-                    // Java 1.7
-                    i=0;
-                    res[i] = File.class.getDeclaredMethod("toPath");
-                    res[i++].setAccessible(true);
-                    final Class<?> nioPathClz = ReflectionUtil.getClass("java.nio.file.Path", false, IOUtil.class.getClassLoader());
-                    final Class<?> nioFilesClz = ReflectionUtil.getClass("java.nio.file.Files", false, IOUtil.class.getClassLoader());
-                    res[i] = nioFilesClz.getDeclaredMethod("isExecutable", nioPathClz);
-                    res[i++].setAccessible(true);
-                } catch (final Throwable t) {
-                    if(_props[0]) {
-                        ExceptionUtils.dumpThrowable("ioutil-init", t);
-                    }
-                }
-                return res;
-            }
-        });
-        {
+        final Method[] res = new Method[] { null, null };
+        try {
             int i=0;
-            DEBUG = _props[i++];
-            DEBUG_EXE = _props[i++];
-            DEBUG_EXE_NOSTREAM = _props[i++];
-            DEBUG_EXE_EXISTING_FILE = _props[i++];
-            testTempDirExec = _props[i++];
-            useNativeExeFile = _props[i++];
+            _props[i++] = Debug.debug("IOUtil");
+            _props[i++] = PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe", true);
+            _props[i++] =  PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe.NoStream", true);
+            // For security reasons, we have to hardcode this, i.e. disable this manual debug feature!
+            _props[i++] = false; // PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe.ExistingFile", true);
+            _props[i++] = PropertyAccess.getBooleanProperty("jogamp.gluegen.TestTempDirExec", true, true);
+            _props[i++] = PropertyAccess.getBooleanProperty("jogamp.gluegen.UseNativeExeFile", true, false);
 
+            // Java 1.7
             i=0;
-            fileToPathGetter = res[i++];
-            isExecutableQuery = res[i++];
+            res[i] = File.class.getDeclaredMethod("toPath");
+            res[i++].setAccessible(true);
+            final Class<?> nioPathClz = ReflectionUtil.getClass("java.nio.file.Path", false, IOUtil.class.getClassLoader());
+            final Class<?> nioFilesClz = ReflectionUtil.getClass("java.nio.file.Files", false, IOUtil.class.getClassLoader());
+            res[i] = nioFilesClz.getDeclaredMethod("isExecutable", nioPathClz);
+            res[i++].setAccessible(true);
+        } catch (final Throwable t) {
+            if(_props[0]) {
+                ExceptionUtils.dumpThrowable("ioutil-init", t);
+            }
         }
+        int i=0;
+        DEBUG = _props[i++];
+        DEBUG_EXE = _props[i++];
+        DEBUG_EXE_NOSTREAM = _props[i++];
+        DEBUG_EXE_EXISTING_FILE = _props[i++];
+        testTempDirExec = _props[i++];
+        useNativeExeFile = _props[i++];
+
+        i=0;
+        fileToPathGetter = res[i++];
+        isExecutableQuery = res[i++];
     }
 
     /** Std. temporary directory property key <code>java.io.tmpdir</code>. */
@@ -136,12 +126,8 @@ public class IOUtil {
     /**
      * Since usage of {@link java.io.FileOutputStream} is considered security critical,
      * we need to check it's availability for each use.
-     * <p>
-     * In case a SecurityManager is installed, privileged access is required.
-     * </p>
      *
-     * @return the constructor of {@link java.io.FileOutputStream} if available and
-     *         no SecurityManager is installed or privileged access is granted.
+     * @return the constructor of {@link java.io.FileOutputStream} if available.
      *         Otherwise null.
      *
      */
@@ -1041,11 +1027,9 @@ public class IOUtil {
      *   <li>files can be executed from the directory</li>
      * </ol>
      *
-     * @throws SecurityException if file creation and process execution is not allowed within the current security context
      * @param dir
      */
     public static boolean testDirExec(final File dir)
-            throws SecurityException
     {
         final boolean debug = DEBUG_EXE || DEBUG;
 
@@ -1083,8 +1067,6 @@ public class IOUtil {
                 fillExeTestFile(exeTestFile);
             }
             exeNativePath = getExeNativePath( exeTestFile.getCanonicalPath() );
-        } catch (final SecurityException se) {
-            throw se; // fwd Security exception
         } catch (final IOException e) {
             if( debug ) {
                 e.printStackTrace();
@@ -1122,8 +1104,6 @@ public class IOUtil {
                     } else {
                         res = -2; // abnormal termination
                     }
-                } catch (final SecurityException se) {
-                    throw se; // fwd Security exception
                 } catch (final Throwable t) {
                     t2 = debug ? System.currentTimeMillis() : 0;
                     res = -3;
@@ -1162,7 +1142,6 @@ public class IOUtil {
     }
 
     private static File testDirImpl(final File dir, final boolean create, final boolean executable, final String dbgMsg)
-            throws SecurityException
     {
         final File res;
         if (create && !dir.exists()) {
@@ -1191,10 +1170,8 @@ public class IOUtil {
      * @param dir the directory to process
      * @param create true if the directory shall be created if not existing
      * @param executable true if the user intents to launch executables from the temporary directory, otherwise false.
-     * @throws SecurityException if file creation and process execution is not allowed within the current security context
      */
     public static File testDir(final File dir, final boolean create, final boolean executable)
-        throws SecurityException
     {
         return testDirImpl(dir, create, executable, "testDir");
     }
@@ -1223,10 +1200,8 @@ public class IOUtil {
      * @param dbgMsg
      * @param tmpDirPrefix
      * @return a temporary directory, writable by this user
-     * @throws SecurityException
      */
     private static File getSubTempDir(final File tmpRoot, final String tmpSubDirPrefix, final boolean executable, final String dbgMsg)
-        throws SecurityException
     {
        File tmpBaseDir = null;
        if(null != testDirImpl(tmpRoot, true /* create */, executable, dbgMsg)) { // check tmpRoot first
@@ -1267,13 +1242,12 @@ public class IOUtil {
      * </p>
      * @param executable true if the user intents to launch executables from the temporary directory, otherwise false.
      * @throws IOException if no temporary directory could be determined
-     * @throws SecurityException if access to <code>java.io.tmpdir</code> is not allowed within the current security context
      *
      * @see PropertyAccess#getProperty(String, boolean)
      * @see Context#getDir(String, int)
      */
     public static File getTempDir(final boolean executable)
-        throws SecurityException, IOException
+        throws IOException
     {
         if(!tempRootSet) { // volatile: ok
             synchronized(IOUtil.class) {
@@ -1400,8 +1374,6 @@ public class IOUtil {
             final String exe_s = executable ? "executable " : "";
             throw new IOException("Could not determine a temporary "+exe_s+"directory");
         }
-        final FilePermission fp = new FilePermission(r.getAbsolutePath(), "read,write,delete");
-        SecurityUtil.checkPermission(fp);
         return r;
     }
     private static File tempRootExec = null; // writeable and executable
@@ -1423,10 +1395,9 @@ public class IOUtil {
      * @return
      * @throws IllegalArgumentException
      * @throws IOException if no temporary directory could be determined or temp file could not be created
-     * @throws SecurityException
      */
     public static File createTempFile(final String prefix, final String suffix, final boolean executable)
-        throws IllegalArgumentException, IOException, SecurityException
+        throws IllegalArgumentException, IOException
     {
         return File.createTempFile( prefix, suffix, getTempDir(executable) );
     }

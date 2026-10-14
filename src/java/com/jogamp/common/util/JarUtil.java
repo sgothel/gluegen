@@ -80,21 +80,15 @@ public class JarUtil {
      * @param r {@link Resolver} to use after querying class file URLs from the classloader.
      * @throws IllegalArgumentException if the passed resolver is <code>null</code>
      * @throws IllegalStateException if the resolver has already been set.
-     * @throws SecurityException if the security manager doesn't have the setFactory
      * permission
      */
-    public static void setResolver(final Resolver r) throws IllegalArgumentException, IllegalStateException, SecurityException {
+    public static void setResolver(final Resolver r) throws IllegalArgumentException, IllegalStateException {
         if(r == null) {
             throw new IllegalArgumentException("Null Resolver passed");
         }
 
         if(resolver != null) {
             throw new IllegalStateException("Resolver already set!");
-        }
-
-        final SecurityManager security = System.getSecurityManager();
-        if(security != null) {
-            security.checkSetFactory();
         }
 
         resolver = r;
@@ -684,15 +678,13 @@ public class JarUtil {
 
     /**
      * Validate the certificates for each native Lib in the jar file.
-     * Throws an IOException if any certificate is not valid.
+     * Throws a SecurityException if any certificate is not valid.
      * <pre>
         Certificate[] rootCerts = Something.class.getProtectionDomain().
                                         getCodeSource().getCertificates();
        </pre>
      */
-    public static final void validateCertificates(final Certificate[] rootCerts, final JarFile jarFile)
-            throws IOException, SecurityException {
-
+    public static final void validateCertificates(final Certificate[] rootCerts, final JarFile jarFile) throws IOException, SecurityException {
         if (DEBUG) {
             System.err.println("JarUtil: validateCertificates: "+jarFile.getName());
         }

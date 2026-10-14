@@ -88,16 +88,10 @@ public abstract class ProcAddressTable {
     private final FunctionAddressResolver resolver;
 
     static {
-        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                DEBUG = (System.getProperty("jogamp.debug.ProcAddressHelper") != null);
-                if (DEBUG) {
-                    DEBUG_PREFIX = System.getProperty("jogamp.debug.ProcAddressHelper.prefix");
-                }
-                return null;
-            }
-        });
+        DEBUG = (System.getProperty("jogamp.debug.ProcAddressHelper") != null);
+        if (DEBUG) {
+            DEBUG_PREFIX = System.getProperty("jogamp.debug.ProcAddressHelper.prefix");
+        }
     }
 
     public ProcAddressTable() {
@@ -115,9 +109,8 @@ public abstract class ProcAddressTable {
      * If a {@link SecurityManager} is installed, user needs link permissions
      * for <b>all</b> libraries, i.e. for <code>new RuntimePermission("loadLibrary.*");</code>!
      * </p>
-     * @throws SecurityException if user is not granted access for all libraries.
      */
-    public void reset(final DynamicLookupHelper lookup) throws SecurityException, RuntimeException {
+    public void reset(final DynamicLookupHelper lookup) throws RuntimeException {
         if(null==lookup) {
             throw new RuntimeException("Passed null DynamicLookupHelper");
         }
@@ -163,15 +156,14 @@ public abstract class ProcAddressTable {
      * </p>
      *
      * @throws IllegalArgumentException if this function is not in this table.
-     * @throws SecurityException if user is not granted access for all libraries.
      */
-    public void initEntry(final String name, final DynamicLookupHelper lookup) throws SecurityException, IllegalArgumentException {
+    public void initEntry(final String name, final DynamicLookupHelper lookup) throws IllegalArgumentException {
         final Field addressField = fieldForFunction(name);
         addressField.setAccessible(true);
         setEntry(addressField, name, lookup);
     }
 
-    private final void setEntry(final Field addressField, final String funcName, final DynamicLookupHelper lookup) throws SecurityException {
+    private final void setEntry(final Field addressField, final String funcName, final DynamicLookupHelper lookup) {
         try {
             assert (addressField.getType() == Long.TYPE);
             final long newProcAddress = resolver.resolve(funcName, lookup); // issues SecurityUtil.checkLinkPermission(String)
@@ -206,18 +198,13 @@ public abstract class ProcAddressTable {
      * </p>
      */
     private final Field fieldForFunctionInSec(final String name) throws IllegalArgumentException {
-        return SecurityUtil.doPrivileged(new PrivilegedAction<Field>() {
-            @Override
-            public Field run() {
-                try {
-                    final Field addressField = ProcAddressTable.this.getClass().getDeclaredField(PROCADDRESS_VAR_PREFIX + name);
-                    addressField.setAccessible(true); // we need to read the protected value!
-                    return addressField;
-                } catch (final NoSuchFieldException ex) {
-                    throw new IllegalArgumentException(getClass().getName() +" has no entry for the function '"+name+"'.", ex);
-                }
-            }
-        } );
+        try {
+            final Field addressField = ProcAddressTable.this.getClass().getDeclaredField(PROCADDRESS_VAR_PREFIX + name);
+            addressField.setAccessible(true); // we need to read the protected value!
+            return addressField;
+        } catch (final NoSuchFieldException ex) {
+            throw new IllegalArgumentException(getClass().getName() +" has no entry for the function '"+name+"'.", ex);
+        }
     }
 
     private final boolean isAddressField(final String fieldName) {
@@ -302,16 +289,10 @@ public abstract class ProcAddressTable {
      * manually compute the &quot;{@link #PROCADDRESS_VAR_PREFIX} + &lt;functionName&gt;&quot;
      * member variable name and look it up via reflection.
      * </p>
-     * <p>
-     * If a {@link SecurityManager} is installed, user needs link permissions
-     * for <b>all</b> libraries, i.e. for <code>new RuntimePermission("loadLibrary.*");</code>!
-     * </p>
      *
      * @throws IllegalArgumentException if this function is not in this table.
-     * @throws SecurityException if user is not granted access for all libraries.
      */
-    public long getAddressFor(final String functionName) throws SecurityException, IllegalArgumentException {
-        SecurityUtil.checkAllLinkPermission();
+    public long getAddressFor(final String functionName) throws IllegalArgumentException {
         final Field addressField = fieldForFunctionInSec(functionName);
         try {
             return addressField.getLong(this);
@@ -343,7 +324,7 @@ public abstract class ProcAddressTable {
 
     private static class One2OneResolver implements FunctionAddressResolver {
         @Override
-        public long resolve(final String name, final DynamicLookupHelper lookup) throws SecurityException {
+        public long resolve(final String name, final DynamicLookupHelper lookup) {
             return lookup.dynamicLookupFunction(name);
         }
     }

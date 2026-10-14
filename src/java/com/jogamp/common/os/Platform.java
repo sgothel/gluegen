@@ -28,7 +28,6 @@
 
 package com.jogamp.common.os;
 
-import java.security.PrivilegedAction;
 import java.util.concurrent.TimeUnit;
 
 import com.jogamp.common.jvm.JNILibLoaderBase;
@@ -36,7 +35,6 @@ import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.cache.TempJarCache;
 
@@ -283,59 +281,50 @@ public class Platform extends PlatformPropsImpl {
     private static final boolean isRunningFromJarURL;
 
     static {
-        final boolean[] _isRunningFromJarURL = new boolean[] { false };
-        final boolean[] _USE_TEMP_JAR_CACHE = new boolean[] { false };
-        final boolean[] _AWT_AVAILABLE = new boolean[] { false };
+        boolean _AWT_AVAILABLE = false;
+        {
+            PlatformPropsImpl.initSingleton(); // documenting the order of static initialization
 
-        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
+            final ClassLoader cl = Platform.class.getClassLoader();
 
-                PlatformPropsImpl.initSingleton(); // documenting the order of static initialization
+            final Uri platformClassJarURI;
+            {
+                Uri _platformClassJarURI = null;
+                try {
+                    _platformClassJarURI = JarUtil.getJarUri(Platform.class.getName(), cl);
+                } catch (final Exception e) { }
+                platformClassJarURI = _platformClassJarURI;
+            }
+            isRunningFromJarURL = null != platformClassJarURI;
 
-                final ClassLoader cl = Platform.class.getClassLoader();
+            USE_TEMP_JAR_CACHE = ( OS_TYPE != OSType.ANDROID ) && ( OS_TYPE != OSType.IOS ) &&
+                                 ( null != platformClassJarURI ) &&
+                                 PropertyAccess.getBooleanProperty(useTempJarCachePropName, true, true);
 
-                final Uri platformClassJarURI;
-                {
-                    Uri _platformClassJarURI = null;
-                    try {
-                        _platformClassJarURI = JarUtil.getJarUri(Platform.class.getName(), cl);
-                    } catch (final Exception e) { }
-                    platformClassJarURI = _platformClassJarURI;
+            // load GluegenRT native library
+            if(USE_TEMP_JAR_CACHE && TempJarCache.initSingleton() && TempJarCache.isInitialized(true) ) {
+                try {
+                    JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { jogamp.common.Debug.class }, null);
+                } catch (final Exception e0) {
+                    // IllegalArgumentException, IOException
+                    System.err.println("Caught "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while JNILibLoaderBase.addNativeJarLibs(..)");
                 }
-                _isRunningFromJarURL[0] = null != platformClassJarURI;
+            }
+            DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false, cl);
 
-                _USE_TEMP_JAR_CACHE[0] = ( OS_TYPE != OSType.ANDROID ) && ( OS_TYPE != OSType.IOS ) &&
-                                         ( null != platformClassJarURI ) &&
-                                         PropertyAccess.getBooleanProperty(useTempJarCachePropName, true, true);
+            // JVM bug workaround
+            JVMUtil.initSingleton(); // requires gluegen_rt, one-time init.
 
-                // load GluegenRT native library
-                if(_USE_TEMP_JAR_CACHE[0] && TempJarCache.initSingleton() && TempJarCache.isInitialized(true) ) {
-                    try {
-                        JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { jogamp.common.Debug.class }, null);
-                    } catch (final Exception e0) {
-                        // IllegalArgumentException, IOException
-                        System.err.println("Caught "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while JNILibLoaderBase.addNativeJarLibs(..)");
-                    }
-                }
-                DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false, cl);
-
-                // JVM bug workaround
-                JVMUtil.initSingleton(); // requires gluegen_rt, one-time init.
-
-                // AWT Headless determination
-                if( !PropertyAccess.getBooleanProperty("java.awt.headless", true) &&
-                    ReflectionUtil.isClassAvailable(ReflectionUtil.AWTNames.ComponentClass, cl) &&
-                    ReflectionUtil.isClassAvailable(ReflectionUtil.AWTNames.GraphicsEnvironmentClass, cl) ) {
-                    try {
-                        _AWT_AVAILABLE[0] = false == ((Boolean)ReflectionUtil.callStaticMethod(ReflectionUtil.AWTNames.GraphicsEnvironmentClass, ReflectionUtil.AWTNames.isHeadlessMethod, null, null, cl)).booleanValue();
-                    } catch (final Throwable t) { }
-                }
-                return null;
-            } } );
-        isRunningFromJarURL = _isRunningFromJarURL[0];
-        USE_TEMP_JAR_CACHE = _USE_TEMP_JAR_CACHE[0];
-        AWT_AVAILABLE = _AWT_AVAILABLE[0];
+            // AWT Headless determination
+            if( !PropertyAccess.getBooleanProperty("java.awt.headless", true) &&
+                ReflectionUtil.isClassAvailable(ReflectionUtil.AWTNames.ComponentClass, cl) &&
+                ReflectionUtil.isClassAvailable(ReflectionUtil.AWTNames.GraphicsEnvironmentClass, cl) ) {
+                try {
+                    _AWT_AVAILABLE = false == ((Boolean)ReflectionUtil.callStaticMethod(ReflectionUtil.AWTNames.GraphicsEnvironmentClass, ReflectionUtil.AWTNames.isHeadlessMethod, null, null, cl)).booleanValue();
+                } catch (final Throwable t) { }
+            }
+        }
+        AWT_AVAILABLE = _AWT_AVAILABLE;
 
         //
         // Validate and setup MachineDataInfo.StaticConfig
