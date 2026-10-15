@@ -302,7 +302,7 @@
     <target name="junit.compile" depends="junit.compile.check" unless="junit.compile.skip">
       <mkdir dir="${build}/test/build/classes"/>
       <antcall target="android.package" inheritRefs="true"/> <!-- implies java.generate,java.build -->
-      <antcall target="dump.localinfo" inheritRefs="true"/>
+      <!-- antcall target="dump.localinfo" inheritRefs="true"/ -->
     </target>
 
     <target name="dump.localinfo">
