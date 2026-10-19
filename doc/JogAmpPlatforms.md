@@ -250,15 +250,15 @@ Available Java(tm) VMs
 
 ### JogAmp Build and Test Setup
 
-#### MacOS 15.5 (Sequoia), Darwin 24, `arm64`
+#### MacOS 15.6 (Sequoia), Darwin 24, `arm64`
 
   - Build and main test machine
     - Produces fat binaries for `x86_64` and `arm64`
   - XCode 16.4 w/ SDK 11.3
     - `export SDKROOT=macosx11.3` (*MacOS SDK*)
     - `-mmacosx-version-min=10.7` (*Miniumum deployment target*)
-  - OpenJDK Temurin 21.0.7+6-LTS
-  - OpenJDK Temurin 27+35 (test)
+  - OpenJDK Temurin 21.0.7+6-LTS (build + test)
+  - OpenJDK Temurin 27+35 (manual test)
 
 #### Retired
 
