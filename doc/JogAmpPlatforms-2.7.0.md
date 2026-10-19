@@ -175,14 +175,17 @@ Currently not tested anymore, code may exist.
 *See contracting options above*
 
 ## Android/Linux
-- Android Version 8.0 Oreo, API Level 26 or later
-  - *minSdkVersion*: 26 (Android 8, Oreo)
+- Android Version 14, API Level 34 or later
+  - Compatible with Java 17 (class file 61)
+    - Supposed to be [Java 17 API compliant](https://developer.android.com/build/jdks),
+      see [Android 14 OpenJDK support](https://developer.android.com/about/versions/14/features#core-libraries)
+  - *minSdkVersion*: 34 (Android 13)
   - *targetSdkVersion*: 35 (Android 15), as required as of 2025-08-31
 
 On 2025-07-20 we have tested `jogl-demos-fat-android-${arch}.apk`
 using an `x86` and `x86_64` emulator for
 
-- Android  8, API 26
+- *Android  8, API 26 (obsoleted)*
 - Android 14, API 34
 - Android 15, API 35
 
