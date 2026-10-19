@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Current runtime requirements are:
-        - Java 8 (class file 52)
-        - Android SDK API level 26 (Version 8.0 Oreo, released August 2017)
-
-     Future versions consider using
-        - Java 11 (class file 55)
-        - Android SDK API level 32 (Version 12 Snow Cone, released 2022)
-          - See <https://developer.android.com/build/jdks>
-          - See <https://developer.android.com/studio/write/java11-default-support-table>
+    - Java 17 (class file 61)
+    - Android SDK API level 34 (Version 14, released June 2023)
+      - See <https://developer.android.com/build/jdks>
+      - See <https://developer.android.com/about/versions/14/features#core-libraries>
+      - See <https://developer.android.com/studio/write/java11-default-support-table>
 
      Official production builds are performed _on_ OpenJDK 21
      and a Java JDK 17 or greater is required.
@@ -59,13 +56,6 @@
     <property name="jvmJava.exe" value="${java.home}/bin/java" /> <!-- the java jvm executable for unit tests -->
     <echo message="jvmJava.exe                ${jvmJava.exe}"/>
 
-    <condition property="jvmJava8.exe" value="${env.JAVA8_EXE}">
-        <not>
-         <equals arg1="${env.JAVA8_EXE}" arg2="$${env.JAVA8_EXE}" casesensitive="true" />
-        </not>
-    </condition>
-    <echo message="jvmJava8.exe               ${jvmJava8.exe}"/> <!-- optional extra Java8 JVM for unit tests -->
-
     <fail message="Please build using Ant 1.8.0 or higher.">
       <condition>
           <not>
@@ -101,40 +91,11 @@
     </condition>
     <echo message="minJava17                  ${minJava17}"/>
 
-    <condition property="minJava11" value="true">
-        <or>
-            <equals arg1="${ant.java.version}" arg2="11"/>
-            <equals arg1="${ant.java.version}" arg2="12"/>
-            <equals arg1="${ant.java.version}" arg2="13"/>
-            <equals arg1="${ant.java.version}" arg2="14"/>
-            <equals arg1="${ant.java.version}" arg2="15"/>
-            <equals arg1="${ant.java.version}" arg2="16"/>
-            <istrue value="${minJava17}"/>
-        </or>
-    </condition>
-    <echo message="minJava11                  ${minJava11}"/>
-
-    <condition property="minJava9" value="true">
-        <or>
-            <equals arg1="${ant.java.version}" arg2="9"/>
-            <istrue value="${minJava11}"/>
-        </or>
-    </condition>
-    <echo message="minJava9                   ${minJava9}"/>
-
-    <condition property="minJava8" value="true">
-        <or>
-            <equals arg1="${ant.java.version}" arg2="1.8"/>
-            <istrue value="${minJava9}"/>
-        </or>
-    </condition>
-    <echo message="minJava8                   ${minJava8}"/>
-
-    <!-- Only for junit runtime tests Java 11 is allowed, for building Java 11 is required. -->
-    <fail message="Unsupported Java version: ${ant.java.version}. Make sure that the version of Java is 11 or greater.">
+    <!-- Only for junit runtime tests Java 17 is allowed, for building Java 21 is required. -->
+    <fail message="Unsupported Java version: ${ant.java.version}. Make sure that the version of Java is 21 or greater.">
         <condition>
             <not>
-                <istrue value="${minJava11}"/>
+                <istrue value="${minJava21}"/>
             </not>
         </condition>
     </fail>
@@ -159,23 +120,15 @@
         </not>
     </condition>
 
-  	<property name="target.sourcelevel" value="8"/>
-  	<property name="target.targetlevel" value="8"/>
-  	<property name="target.releaselevel" value="8"/>
-  	<property name="target.buildlevel" value="11"/>
+  	<property name="target.sourcelevel" value="17"/>
+  	<property name="target.targetlevel" value="17"/>
+  	<property name="target.releaselevel" value="17"/>
+  	<property name="target.buildlevel" value="21"/>
 
     <!-- not required:     java.base/java.lang=ALL-UNNAMED -->
     <!-- required for AWT: java.desktop/sun.awt=ALL-UNNAMED java.desktop/sun.awt.windows=ALL-UNNAMED java.desktop/sun.java2d=ALL-UNNAMED -->
     <condition property="jvmarg.modules"  value="--enable-native-access=ALL-UNNAMED --add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.awt.windows=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED">
         <isset property="minJava17"/>
-    </condition>
-    <condition property="jvmarg.modules"  value="--illegal-access=warn">
-        <and>
-            <isset property="minJava11"/>
-            <not>
-                <isset property="minJava17"/>
-            </not>
-        </and>
     </condition>
     <property name="jvmarg.modules"      value=""/> <!-- default is empty -->
     <property name="jvmarg.generic"      value="${jvmarg.modules}"/>
@@ -195,7 +148,7 @@
     <echo message="jogamp.version             ${jogamp.version}"/>
 
     <!-- This is the Android version: xxyyzzz, xx=API yy screen-from-to zzz app-version-->
-    <property name="jogamp.version.int"   value="2414030"/>
+    <property name="jogamp.version.int"   value="2614040"/>
     <echo message="jogamp.version.int         ${jogamp.version.int}"/>
 
     <!-- only set 'junit.is.disabled' if set in environment as 'true' to disable JUNIT tests -->
@@ -228,7 +181,7 @@
         </not>
     </condition>
 
-    <condition property="android.api.level" value="${env.ANDROID_API_LEVEL}" else="26">
+    <condition property="android.api.level" value="${env.ANDROID_API_LEVEL}" else="34">
         <not>
          <equals arg1="${env.ANDROID_API_LEVEL}" arg2="$${env.ANDROID_API_LEVEL}" casesensitive="true" />
         </not>
