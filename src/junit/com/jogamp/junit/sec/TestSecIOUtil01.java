@@ -29,7 +29,6 @@
 package com.jogamp.junit.sec;
 
 import java.net.URISyntaxException;
-import java.security.AccessControlException;
 import java.io.File;
 import java.io.IOException;
 
@@ -62,7 +61,7 @@ public class TestSecIOUtil01 extends SingletonJunitCase {
         try {
             final String p0 = System.getProperty(propKey);
             System.err.println(propKey+": "+p0);
-        } catch (final AccessControlException e) {
+        } catch (final Exception e) {
             se0 = e;
             System.err.println("Expected exception for property (secure "+isSecure+") <"+propKey+">");
             System.err.println("Message: "+se0.getMessage());
@@ -90,10 +89,6 @@ public class TestSecIOUtil01 extends SingletonJunitCase {
         try {
             final File tmp = IOUtil.getTempDir(true);
             System.err.println("Temp: "+tmp);
-        } catch (final AccessControlException e) {
-            se0 = e;
-            System.err.println("Expected exception for insecure temp dir");
-            System.err.println("Message: "+se0.getMessage());
         } catch (final IOException e) {
             throw new RuntimeException(e); // oops
         } catch (final Exception e) {
