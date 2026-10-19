@@ -19,12 +19,13 @@ table, th, td {
 </style>
 
 # JogAmp's Supported Platforms
-Jogamp 2.6.x runtime is supported on the described platforms below.
+Jogamp 2.7.x runtime is supported on the described platforms below.
 
 Please ask for contracting options to
 have support added for your desired platform.
 
 ## By JogAmp Version
+- [Version 2.7.0](https://jogamp.org/gluegen/doc/JogAmpPlatforms-2.7.0.html)
 - [Version 2.6.0](https://jogamp.org/gluegen/doc/JogAmpPlatforms-2.6.0.html)
 
 ## Unit Testing
@@ -39,7 +40,7 @@ and is performed on non Android platforms:
 #!/bin/sh
 
 type=archive/rc
-version=v2.6.0
+version=v2.7.0
 folder=${type}/${version}
 
 mkdir ${version}
@@ -70,23 +71,28 @@ on your device w/ developer mode enabled.
 ## Java / OpenJDK
 Current runtime requirements
 
-- Java 8 (class file 52)
-- [OpenJDK](http://openjdk.java.net/) >= 8, tested on [Adoptium Builds](https://adoptium.net/temurin/releases/)
-  - OpenJDK 21 - 25
-  - OpenJDK 17
-  - OpenJDK 11
+- Java 17 (class file 61)
+- [OpenJDK](http://openjdk.java.net/) >= 21 [LTS](https://en.wikipedia.org/wiki/Java_version_history),
+  tested on [Adoptium Builds](https://adoptium.net/temurin/releases/)
+  - *OpenJDK 29 LTS (2027-09-21 - 2032-09-00)*
+  - OpenJDK 27 (2026-09-15 - 2027-03-00)
+  - OpenJDK 25 LTS (2025-09-16 - 2031-09-00)
+  - OpenJDK 21 LTS (2023-09-19 - 2028-09-00)
   - Following [OpenJDK](http://openjdk.java.net/) versions are no more tested, but may work
+    - OpenJDK 17
+    - OpenJDK 11
     - OpenJDK 10
     - OpenJDK 9
     - OpenJDK 8
 - [Azul's Zulu](https://www.azul.com/downloads/zulu-community/) (untested)
 - [Avian](https://github.com/ReadyTalk/avian) (untested)
 
-Future versions may use
+### Android Versions
 
-- Java 11 (class file 55)
-- Android SDK API level 32 (Version 12 Snow Cone, released 2022)
-  - Supposed to be [Java 11 API compliant](https://developer.android.com/build/jdks)
+- Compatible with Java 17 (class file 61)
+- Android SDK API level 34 (Version 14, released June 2023)
+  - Supposed to be [Java 17 API compliant](https://developer.android.com/build/jdks),
+    see [Android 14 OpenJDK support](https://developer.android.com/about/versions/14/features#core-libraries)
 
 *See contracting options above*
 
@@ -137,11 +143,14 @@ Therefor it is expected to be able to run on older and newer distributions.
 
 ### Distributions
 - Debian [LTS](https://wiki.debian.org/LTS) and [Releases](https://www.debian.org/releases/)
+  - Debian 14 *Forky* to be announced
+  - Debian 13 *Trixie* LTS until 2030-06-30
+  - Debian 12 *Bookworm* LTS until 2028-06-30
   - Debian 11 *Bullseye* LTS until 2026-08-31
-  - Debian 12 *Bookworm* (future LTS on 2026-06-11)
-  - Debian 13 *Trixie*
-- [Ubuntu](https://www.releases.ubuntu.com/)
-  - Ubuntu 24.04.2 LTS (2025-02-20)
+- [Ubuntu](https://ubuntu.com/project/docs/release-team/list-of-releases/)
+  - Ubuntu 26.04.1 LTS (2026-08-27 - 2031-05-00)
+  - Ubuntu 24.04.5 LTS (2026-09-10 - 2029-06-00)
+  - Ubuntu 24.04.2 LTS (2025-02-20 - 2029-06-00)
   - Ubuntu 22.04.5 LTS (2024-09-12)
   - Ubuntu 20.04.6 LTS (2023-03-22)
 
@@ -221,9 +230,9 @@ References
 | 10.15         | Catalina     | 19             |                                            |
 |               |              |                |                                            |
 | 11            | Big Sur      | 20             |                                            |
-| 12            | Monterey     | 21             | Build node 12.6.5, w/ Xcode 14.2, `x86_64` |
+| 12            | Monterey     | 21             | Build node 12.6.5 w/ Xcode 14.2, `x86_64` (retired) |
 | 13            | Ventura      | 22             | Test node 13.1, `arm64` (retired)          |
-| 15            | Sequoia      | 24             | Test node 15.6, `arm64`                    |
+| 15            | Sequoia      | 24             | Build node 15.6.1 w/ Xcode 16.4, `arm64` (+ test) |
 
 Exceptions:
 - JOAL's build-in OpenAL-Soft requires MacOS 10.13
@@ -238,22 +247,27 @@ Available Java(tm) VMs
 
 ### JogAmp Build and Test Setup
 
-#### MacOS 12.6.5 (Monterey), Darwin 21, `x86_64`
+#### MacOS 15.5 (Sequoia), Darwin 24, `arm64`
+
+  - Build and main test machine
+    - Produces fat binaries for `x86_64` and `arm64`
+  - XCode 16.4 w/ SDK 11.3
+    - `export SDKROOT=macosx11.3` (*MacOS SDK*)
+    - `-mmacosx-version-min=10.7` (*Miniumum deployment target*)
+  - OpenJDK Temurin 21.0.7+6-LTS
+  - OpenJDK Temurin 27+35 (test)
+
+#### Retired
+
+Currently not tested anymore, but should still work.
+
+##### MacOS 12.6.5 (Monterey), Darwin 21, `x86_64`
 
   - Build and main test machine
   - XCode 14.2 w/ SDK 11.3
     - `export SDKROOT=macosx11.3` (*MacOS SDK*)
     - `-mmacosx-version-min=10.7` (*Miniumum deployment target*)
   - OpenJDK Temurin 21.0.7+6-LTS
-
-#### MacOS 15.5 (Sequoia), Darwin 24, `arm64`
-
-  - Test machine
-  - OpenJDK Temurin 21.0.7+6-LTS
-
-#### Retired
-
-Currently not tested anymore, but should still work.
 
 ##### MacOS 10.13.6 (High Sierra), Darwin 17, `x86_64`
 
@@ -273,3 +287,4 @@ Currently not tested anymore, but should still work.
 |:-----------|:-----------------------------------------|
 | 2023-05-06 | Initial Version for JogAmp Release 2.5.0 |
 | 2025-08-31 | JogAmp Release 2.6.0                     |
+| 2026-10-19 | JogAmp Release 2.7.0 (draft)             |
