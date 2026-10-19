@@ -179,7 +179,7 @@ Currently not tested anymore, code may exist.
   - Compatible with Java 17 (class file 61)
     - Supposed to be [Java 17 API compliant](https://developer.android.com/build/jdks),
       see [Android 14 OpenJDK support](https://developer.android.com/about/versions/14/features#core-libraries)
-  - *minSdkVersion*: 34 (Android 13)
+  - *minSdkVersion*: 34 (Android 14)
   - *targetSdkVersion*: 35 (Android 15), as required as of 2025-08-31
 
 On 2025-07-20 we have tested `jogl-demos-fat-android-${arch}.apk`
