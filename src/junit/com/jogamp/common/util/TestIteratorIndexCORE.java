@@ -47,7 +47,7 @@ public class TestIteratorIndexCORE extends SingletonJunitCase {
 
     public void populate(final List<Integer> l, int len) {
         while(len>0) {
-            l.add(new Integer(len--));
+            l.add(Integer.valueOf(len--));
         }
     }
 

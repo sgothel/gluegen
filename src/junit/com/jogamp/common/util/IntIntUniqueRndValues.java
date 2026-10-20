@@ -50,7 +50,7 @@ public class IntIntUniqueRndValues {
         values = new int[size];
         while (uniqueKeys.size() < size) {
             final int k = keyRnd.nextInt();
-            if( uniqueKeys.add( new Integer(k) ) ) {
+            if( uniqueKeys.add( Integer.valueOf(k) ) ) {
                 final int i = uniqueKeys.size()-1;
                 keys[i] = k;
                 values[i] = valueRnd.nextInt();
