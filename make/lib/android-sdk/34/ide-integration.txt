@@ -1,0 +1,8 @@
+To integrate the android classes as well as sources, please follow
+
+- ide-make-android-stripped.sh
+  - create your own stripped `android-stripped.jar` w/o java package collision
+
+- ide-android-java-src.txt
+  - create your own source `android-java-src.zip` file attachment
+

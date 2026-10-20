@@ -2,9 +2,9 @@ Retrieved from public sources as described in script below.
 
 ++++
 
-git clone https://github.com/AndroidSDKSources/android-sdk-sources-for-api-level-26
+git clone https://github.com/AndroidSDKSources/android-sdk-sources-for-api-level-34
 
-cd android-sdk-sources-for-api-level-26
+cd android-sdk-sources-for-api-level-34
 
 jar cvf android-java-src.zip android com javax/microedition/khronos
 

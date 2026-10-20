@@ -4,3 +4,5 @@ make/STDCTokenTypes.txt
 build*/
 build-temp
 *.log
+/make/lib/android-sdk/34/android-java-src.zip
+/make/lib/android-sdk/34/android-stripped.jar
