@@ -39,6 +39,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -678,13 +679,14 @@ public class JarUtil {
 
     /**
      * Validate the certificates for each native Lib in the jar file.
-     * Throws a SecurityException if any certificate is not valid.
+     * Throws a CertificateException if any certificate is not valid.
      * <pre>
         Certificate[] rootCerts = Something.class.getProtectionDomain().
                                         getCodeSource().getCertificates();
        </pre>
+     * @throws CertificateException on certificate mismatch
      */
-    public static final void validateCertificates(final Certificate[] rootCerts, final JarFile jarFile) throws IOException, SecurityException {
+    public static final void validateCertificates(final Certificate[] rootCerts, final JarFile jarFile) throws IOException, CertificateException {
         if (DEBUG) {
             System.err.println("JarUtil: validateCertificates: "+jarFile.getName());
         }
@@ -707,9 +709,10 @@ public class JarUtil {
     /**
      * Check the certificates with the ones in the jar file
      * (all must match).
+     * @throws CertificateException on certificate mismatch
      */
     private static final void validateCertificate(final Certificate[] rootCerts,
-            final JarFile jar, final JarEntry entry, final byte[] buf) throws IOException, SecurityException {
+            final JarFile jar, final JarEntry entry, final byte[] buf) throws IOException, CertificateException {
 
         if (DEBUG) {
             System.err.println("JarUtil: validate JarEntry : " + entry.getName());
@@ -728,11 +731,11 @@ public class JarUtil {
         // Get the certificates for the JAR entry
         final Certificate[] nativeCerts = entry.getCertificates();
         if (nativeCerts == null || nativeCerts.length == 0) {
-            throw new SecurityException("no certificate for " + entry.getName() + " in " + jar.getName());
+            throw new CertificateException("no certificate for " + entry.getName() + " in " + jar.getName());
         }
 
         if( !SecurityUtil.equals(rootCerts, nativeCerts) ) {
-            throw new SecurityException("certificates not equal for " + entry.getName() + " in " + jar.getName());
+            throw new CertificateException("certificates not equal for " + entry.getName() + " in " + jar.getName());
         }
     }
 }

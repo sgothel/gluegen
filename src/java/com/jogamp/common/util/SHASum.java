@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -224,13 +225,13 @@ public class SHASum {
          * @param jarclazz a class from the desired classpath jar file used for {@link TempJarCache#addAll(Class, com.jogamp.common.net.Uri)}
          * @param excludes the optional exclude patterns to be used for {@link IOUtil#filesOf(List, List, List)}
          * @param includes the optional include patterns to be used for {@link IOUtil#filesOf(List, List, List)}
-         * @throws SecurityException
+         * @throws CertificateException on certificate mismatch
          * @throws IllegalArgumentException
          * @throws IOException
          * @throws URISyntaxException
          */
         public TempJarSHASum(final MessageDigest digest, final Class<?> jarclazz, final List<Pattern> excludes, final List<Pattern> includes)
-                throws SecurityException, IllegalArgumentException, IOException, URISyntaxException
+                throws CertificateException, IllegalArgumentException, IOException, URISyntaxException
         {
             super(digest, Arrays.asList(IOUtil.slashify(TempJarCache.getTempFileCache().getTempDir().getAbsolutePath(), false, false)),
                   excludes, includes);

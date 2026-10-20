@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.JarFile;
@@ -257,12 +258,12 @@ public class TempJarCache {
      * @param nativeLibraryPath if not null, only extracts native libraries within this path.
      * @return true if native libraries were added or previously loaded from given jarUri, otherwise false
      * @throws IOException if the <code>jarUri</code> could not be loaded or a previous load attempt failed
-     * @throws SecurityException
+     * @throws @throws CertificateException on certificate mismatch
      * @throws URISyntaxException
      * @throws IllegalArgumentException
      * @throws JogampRuntimeException if not {@link #isInitialized(boolean) isInitialized(true)}
      */
-    public synchronized static final boolean addNativeLibs(final Class<?> certClass, final Uri jarUri, final String nativeLibraryPath) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
+    public synchronized static final boolean addNativeLibs(final Class<?> certClass, final Uri jarUri, final String nativeLibraryPath) throws IOException, CertificateException, IllegalArgumentException, URISyntaxException {
         checkInitialized(true);
         final LoadState nativeLibJarsLS = nativeLibJars.get(jarUri);
         if( !testLoadState(nativeLibJarsLS, LoadState.LOOKED_UP) ) {
@@ -293,12 +294,12 @@ public class TempJarCache {
      * @param certClass if class is certified, the JarFile entries needs to have the same certificate
      * @param jarUri
      * @throws IOException if the <code>jarUri</code> could not be loaded or a previous load attempt failed
-     * @throws SecurityException
+     * @throws CertificateException on certificate mismatch
      * @throws URISyntaxException
      * @throws IllegalArgumentException
      * @throws JogampRuntimeException if not {@link #isInitialized(boolean) isInitialized(false)}
      */
-    public synchronized static final void addClasses(final Class<?> certClass, final Uri jarUri) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
+    public synchronized static final void addClasses(final Class<?> certClass, final Uri jarUri) throws IOException, CertificateException, IllegalArgumentException, URISyntaxException {
         checkInitialized(false);
         final LoadState classFileJarsLS = classFileJars.get(jarUri);
         if( !testLoadState(classFileJarsLS, LoadState.LOOKED_UP) ) {
@@ -323,12 +324,12 @@ public class TempJarCache {
      * @param jarUri
      * @return
      * @throws IOException if the <code>jarUri</code> could not be loaded or a previous load attempt failed
-     * @throws SecurityException
+     * @throws CertificateException on certificate mismatch
      * @throws URISyntaxException
      * @throws IllegalArgumentException
      * @throws JogampRuntimeException if not {@link #isInitialized(boolean) isInitialized(false)}
      */
-    public synchronized static final void addResources(final Class<?> certClass, final Uri jarUri) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
+    public synchronized static final void addResources(final Class<?> certClass, final Uri jarUri) throws IOException, CertificateException, IllegalArgumentException, URISyntaxException {
         checkInitialized(false);
         final LoadState resourceFileJarsLS = resourceFileJars.get(jarUri);
         if( !testLoadState(resourceFileJarsLS, LoadState.LOOKED_UP) ) {
@@ -356,12 +357,12 @@ public class TempJarCache {
      * @param certClass if class is certified, the JarFile entries needs to have the same certificate
      * @param jarUri
      * @throws IOException if the <code>jarUri</code> could not be loaded or a previous load attempt failed
-     * @throws SecurityException
+     * @throws CertificateException on certificate mismatch
      * @throws URISyntaxException
      * @throws IllegalArgumentException
      * @throws JogampRuntimeException if not {@link #isInitialized(boolean) isInitialized(false)}
      */
-    public synchronized static final void addAll(final Class<?> certClass, final Uri jarUri) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
+    public synchronized static final void addAll(final Class<?> certClass, final Uri jarUri) throws IOException, CertificateException, IllegalArgumentException, URISyntaxException {
         checkInitialized(false);
         if(null == jarUri) {
             throw new IllegalArgumentException("jarUri is null");
@@ -485,7 +486,13 @@ public class TempJarCache {
         return null;
     }
 
-    private static void validateCertificates(final Class<?> certClass, final JarFile jarFile) throws IOException, SecurityException {
+    /**
+     * @param certClass
+     * @param jarFile
+     * @throws IOException
+     * @throws CertificateException on certificate mismatch
+     */
+    private static void validateCertificates(final Class<?> certClass, final JarFile jarFile) throws IOException, CertificateException {
         if(null == certClass) {
             throw new IllegalArgumentException("certClass is null");
         }
@@ -493,8 +500,6 @@ public class TempJarCache {
         if( null != rootCerts ) {
             // Only validate the jarFile's certs with ours, if we have any.
             // Otherwise we may run uncertified JARs (application).
-            // In case one tries to run uncertified JARs, the wrapping applet/JNLP
-            // SecurityManager will kick in and throw a SecurityException.
             JarUtil.validateCertificates(rootCerts, jarFile);
             if(DEBUG) {
                 System.err.println("TempJarCache: validateCertificates: OK - Matching rootCerts in given class "+certClass.getName()+", nativeJar "+jarFile.getName());

@@ -36,6 +36,7 @@ import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.net.JarURLConnection;
 import java.net.URLStreamHandler;
+import java.security.cert.CertificateException;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -146,7 +147,7 @@ public class TestJarUtil extends SingletonJunitCase {
     }
 
     @Test
-    public void testJarUtilJarInJar01() throws IOException, ClassNotFoundException, IllegalArgumentException, URISyntaxException {
+    public void testJarUtilJarInJar01() throws CertificateException, IOException, ClassNotFoundException, IllegalArgumentException, URISyntaxException {
         System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
         Assert.assertTrue(TempJarCache.initSingleton());
@@ -167,7 +168,7 @@ public class TestJarUtil extends SingletonJunitCase {
     }
 
     @Test
-    public void testJarUtilJarInJar02() throws IOException, ClassNotFoundException, IllegalArgumentException, URISyntaxException {
+    public void testJarUtilJarInJar02() throws CertificateException, IOException, ClassNotFoundException, IllegalArgumentException, URISyntaxException {
         System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
         Assert.assertTrue(TempJarCache.initSingleton());
@@ -195,7 +196,7 @@ public class TestJarUtil extends SingletonJunitCase {
      * @throws IllegalArgumentException
      */
     @Test
-    public void testJarUtilJarInJar03() throws IOException, ClassNotFoundException, IllegalArgumentException, URISyntaxException {
+    public void testJarUtilJarInJar03() throws CertificateException, IOException, ClassNotFoundException, IllegalArgumentException, URISyntaxException {
         System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
         Assert.assertTrue(TempJarCache.initSingleton());
@@ -212,6 +213,7 @@ public class TestJarUtil extends SingletonJunitCase {
             }
 
             /** Override normal method to return un-resolvable URL. */
+            @Override
             public URL getResource(final String name) {
                 final URL url = super.getResource(name);
                 if(url == null)
@@ -238,6 +240,7 @@ public class TestJarUtil extends SingletonJunitCase {
          * opaque bundle data inside its custom classloader to find the stored JAR path; we do it here
          * by simply retrieving the JAR name from where we left it at the end of the URL. */
         JarUtil.setResolver( new JarUtil.Resolver() {
+            @Override
             public URL resolve( final URL url ) {
                 if( url.getProtocol().equals("bundleresource") ) {
                     try {

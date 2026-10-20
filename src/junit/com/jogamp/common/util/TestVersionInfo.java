@@ -31,6 +31,8 @@ package com.jogamp.common.util;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+
 import org.junit.Test;
 
 import com.jogamp.common.GlueGenVersion;
@@ -56,7 +58,7 @@ public class TestVersionInfo extends SingletonJunitCase {
 
     @Test
     public void test02ValidateSHA()
-            throws IllegalArgumentException, IOException, URISyntaxException, SecurityException, NoSuchAlgorithmException
+            throws IllegalArgumentException, IOException, URISyntaxException, CertificateException, NoSuchAlgorithmException
     {
         final GlueGenVersion info = GlueGenVersion.getInstance();
         final String shaClassesThis = info.getImplementationSHAClassesThis();

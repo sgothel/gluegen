@@ -34,6 +34,7 @@ import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.cert.CertificateException;
 import java.util.jar.JarFile;
 
 import org.junit.Assert;
@@ -172,7 +173,7 @@ public class TestTempJarCache extends SingletonJunitCase {
     }
 
     @Test
-    public void testTempJarCache01LoadAllTestManifestAndClass() throws IOException, IllegalArgumentException, URISyntaxException {
+    public void testTempJarCache01LoadAllTestManifestAndClass() throws CertificateException, IOException, IllegalArgumentException, URISyntaxException {
         if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
 
         final ClassLoader cl = getClass().getClassLoader();
@@ -194,7 +195,7 @@ public class TestTempJarCache extends SingletonJunitCase {
     }
 
     @Test
-    public void testTempJarCache02AddNativeLibs() throws IOException, IllegalArgumentException, URISyntaxException {
+    public void testTempJarCache02AddNativeLibs() throws IOException, IllegalArgumentException, URISyntaxException, CertificateException {
         if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
         final Uri.Encoded nativeJarName = Uri.Encoded.cast("gluegen-rt-natives-"+Platform.getOSAndArch()+".jar");
         final String libBaseName = "gluegen_rt";

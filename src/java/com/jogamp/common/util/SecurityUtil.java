@@ -35,9 +35,8 @@ public class SecurityUtil {
     /**
      * @param clz
      * @return
-     * @throws SecurityException if the caller has no permission to access the ProtectedDomain of the given class.
      */
-    public static final Certificate[] getCerts(final Class<?> clz) throws SecurityException {
+    public static final Certificate[] getCerts(final Class<?> clz) {
         final ProtectionDomain pd = clz.getProtectionDomain();
         final CodeSource cs = (null != pd) ? pd.getCodeSource() : null;
         final Certificate[] certs = (null != cs) ? cs.getCertificates() : null;

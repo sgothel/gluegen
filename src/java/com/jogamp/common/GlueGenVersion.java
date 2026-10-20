@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.Manifest;
@@ -76,14 +77,14 @@ public class GlueGenVersion extends JogampVersion {
     public static class GluGenRTJarSHASum extends SHASum.TempJarSHASum {
         /**
          * See {@link GluGenRTJarSHASum}
-         * @throws SecurityException
+         * @throws CertificateException on certificate mismatch
          * @throws IllegalArgumentException
          * @throws NoSuchAlgorithmException
          * @throws IOException
          * @throws URISyntaxException
          */
         public GluGenRTJarSHASum()
-                throws SecurityException, IllegalArgumentException, NoSuchAlgorithmException, IOException, URISyntaxException
+                throws CertificateException, IllegalArgumentException, NoSuchAlgorithmException, IOException, URISyntaxException
         {
             super(MessageDigest.getInstance("SHA-256"), GlueGenVersion.class, new ArrayList<Pattern>(), new ArrayList<Pattern>());
             final List<Pattern> excludes = getExcludes();
