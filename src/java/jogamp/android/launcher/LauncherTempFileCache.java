@@ -145,7 +145,7 @@ public class LauncherTempFileCache {
         synchronized (System.out) {
             // Get the name of the tmpbase directory.
             {
-                final File tmpRoot = ctx.getDir("temp", Context.MODE_PRIVATE); // Context.MODE_WORLD_READABLE -> SecurityException API >= 24
+                final File tmpRoot = ctx.getDir("temp", Context.MODE_PRIVATE); // Context.MODE_WORLD_READABLE -> [Security]Exception API >= 24
                 tmpBaseDir = new File(new File(tmpRoot, tmpSubDir), tmpDirPrefix);
             }
             tmpRootPropValue = System.getProperty(tmpRootPropName);
@@ -225,6 +225,7 @@ public class LauncherTempFileCache {
                 // We do this so that the locks never get garbage-collected.
                 Runtime.getRuntime().addShutdownHook(new Thread() {
                     /* @Override */
+                    @Override
                     public void run() {
                         // NOTE: we don't really expect that this code will ever
                         // be called. If it does, we will close the output
@@ -251,6 +252,7 @@ public class LauncherTempFileCache {
                 // Start a new Reaper thread to do stuff...
                 final Thread reaperThread = new Thread() {
                     /* @Override */
+                    @Override
                     public void run() {
                         deleteOldTempDirs();
                     }
@@ -278,6 +280,7 @@ public class LauncherTempFileCache {
         final String ourLockFile = tmpRootPropValue + ".lck";
         final FilenameFilter lckFilter = new FilenameFilter() {
             /* @Override */
+            @Override
             public boolean accept(final File dir, final String name) {
                 return name.endsWith(".lck") && !name.equals(ourLockFile);
             }

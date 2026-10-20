@@ -32,7 +32,6 @@
 package com.jogamp.gluegen.runtime;
 
 import com.jogamp.common.os.DynamicLookupHelper;
-import com.jogamp.common.util.SecurityUtil;
 
 /**
  * @author Michael Bien, et.al.

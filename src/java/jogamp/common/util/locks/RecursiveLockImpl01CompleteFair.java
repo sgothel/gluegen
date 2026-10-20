@@ -289,7 +289,7 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
                 }
 
                 oldest.signaledByUnlock = true;
-                oldest.thread.interrupt(); // Propagate SecurityException if it happens
+                oldest.thread.interrupt(); // Propagate [Security]Exception if it happens
             } else {
                 sync.setOwner(null);
                 if(TRACE_LOCK) {

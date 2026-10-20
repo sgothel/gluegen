@@ -34,7 +34,6 @@ package com.jogamp.common.util;
 import com.jogamp.common.JogampRuntimeException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;

@@ -37,7 +37,6 @@
 package com.jogamp.gluegen.runtime;
 
 import com.jogamp.common.os.DynamicLookupHelper;
-import com.jogamp.common.util.SecurityUtil;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -46,7 +45,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
-import java.security.PrivilegedAction;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -166,7 +164,7 @@ public abstract class ProcAddressTable {
     private final void setEntry(final Field addressField, final String funcName, final DynamicLookupHelper lookup) {
         try {
             assert (addressField.getType() == Long.TYPE);
-            final long newProcAddress = resolver.resolve(funcName, lookup); // issues SecurityUtil.checkLinkPermission(String)
+            final long newProcAddress = resolver.resolve(funcName, lookup);
             addressField.setLong(this, newProcAddress);
             if (DEBUG) {
                 getDebugOutStream().println("  " + addressField.getName() + " -> 0x" + Long.toHexString(newProcAddress));

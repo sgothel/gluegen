@@ -28,10 +28,7 @@
 
 package jogamp.common;
 
-import java.security.PrivilegedAction;
-
 import com.jogamp.common.util.PropertyAccess;
-import com.jogamp.common.util.SecurityUtil;
 
 /** Helper routines for logging and debugging. */
 

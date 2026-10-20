@@ -71,11 +71,11 @@ public class AndroidUtilsImpl {
     *         otherwise the context relative world readable <code>temp</code> directory returned.
     */
    public static File getTempRoot()
-        throws SecurityException, RuntimeException
+        throws RuntimeException
    {
        final Context ctx = StaticContext.getContext();
        if(null != ctx) {
-           final File tmpRoot = ctx.getDir("temp", Context.MODE_PRIVATE); // Context.MODE_WORLD_READABLE -> SecurityException API >= 24
+           final File tmpRoot = ctx.getDir("temp", Context.MODE_PRIVATE); // Context.MODE_WORLD_READABLE -> [Security]Exception API >= 24
            if(null==tmpRoot|| !tmpRoot.isDirectory() || !tmpRoot.canWrite()) {
                throw new RuntimeException("Not a writable directory: '"+tmpRoot+"', retrieved Android static context");
            }

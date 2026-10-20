@@ -6,7 +6,6 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
-import java.security.PrivilegedAction;
 import java.util.List;
 
 import jogamp.common.Debug;
@@ -22,7 +21,6 @@ import com.jogamp.common.os.Platform.ABIType;
 import com.jogamp.common.os.Platform.CPUFamily;
 import com.jogamp.common.os.Platform.CPUType;
 import com.jogamp.common.os.Platform.OSType;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionNumber;
 
 /**
@@ -120,8 +118,6 @@ public abstract class PlatformPropsImpl {
     public static final boolean useDynamicLibraries;
 
     static {
-        // We don't seem to need an AccessController.doPrivileged() block
-        // here as these system properties are visible even to unsigned Applets.
         final boolean isAndroid = AndroidVersion.isAvailable; // also triggers it's static initialization
         JAVA_VENDOR = System.getProperty("java.vendor");
         JAVA_VENDOR_URL = System.getProperty("java.vendor.url");

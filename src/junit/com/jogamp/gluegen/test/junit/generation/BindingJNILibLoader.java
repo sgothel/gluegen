@@ -29,9 +29,6 @@
 package com.jogamp.gluegen.test.junit.generation;
 
 import com.jogamp.common.jvm.JNILibLoaderBase;
-import com.jogamp.common.util.SecurityUtil;
-
-import java.security.*;
 
 public class BindingJNILibLoader extends JNILibLoaderBase {
 
